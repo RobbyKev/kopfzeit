@@ -169,7 +169,7 @@ textarea.inp{resize:vertical;min-height:70px;font-size:1em;line-height:1.4}
 .symrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .symrow:last-child{border-bottom:none}
 .symrow .lab{flex:1 1 160px}
-.seg{display:flex;gap:4px}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
 .seg button{appearance:none;border:1px solid var(--line);background:var(--card2);color:var(--muted);font:inherit;font-size:.78em;padding:6px 9px;border-radius:10px;cursor:pointer;min-width:52px}
 .seg button.on{color:var(--on-accent);border-color:transparent;font-weight:700}
 .seg button.on.v0{background:#9ad0b4}.seg button.on.v1{background:#f2d46b}.seg button.on.v2{background:#f2a65c}.seg button.on.v3{background:#e8807a}
@@ -206,6 +206,9 @@ details.fold[open]>summary::after{content:' ▴'}
  .kbdhint{display:block!important}
 }
 .kbdhint{display:none;font-size:.75em;color:var(--muted);text-align:center;margin-top:8px}
+.chip.tagc{min-height:40px;padding:7px 13px;font-size:.9em}
+.chip.tagc.hard{background:#f2a65c}
+select.inp{appearance:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -1140,28 +1143,76 @@ function freeList(){if(curCtx)curCtx.kill();demo=false;document.body.classList.r
 
 /* ================= Check-in & Plan ================= */
 /* ===== Tagebuch ===== */
-const SYM=[['erschoepfung','Erschöpfung / Fatigue'],['crash','Crash-Gefühl / PEM'],['schlaf','Schlaf nicht erholsam'],['schmerz','Muskel- / Gelenkschmerzen'],['kopfschmerz','Kopfschmerzen'],['kreislauf','Kreislauf / Schwindel im Stehen'],['herz','Herzrasen / Herzklopfen'],['reize','Reizempfindlichkeit (Licht, Lärm)'],['grippe','Grippegefühl / Halsschmerzen'],['atem','Atemnot'],['magen','Magen / Darm'],['stimmung','Gedrückte Stimmung'],['wortfindung','Wortfindung / Sprache'],['gedaechtnis','Gedächtnis / Vergesslichkeit']];
-const SYMDEF=['erschoepfung','crash','schlaf','schmerz','kopfschmerz','kreislauf','reize','grippe'];
-const SYML=Object.fromEntries(SYM);const SEV=['keine','leicht','mittel','stark'];
-function symCard(state,open){const keys=(S.settings.sym||SYMDEF).filter(k=>SYML[k]);
- const rows=keys.map(k=>{const seg=h('div',{class:'seg'});SEV.forEach((l,v)=>{const b=h('button',{class:'v'+v+(state[k]===v?' on':''),type:'button'},l);b.onclick=()=>{if(state[k]===v)delete state[k];else state[k]=v;seg.querySelectorAll('button').forEach((x,j)=>x.classList.toggle('on',state[k]===j))};seg.append(b)});return h('div',{class:'symrow'},h('span',{class:'lab'},SYML[k]),seg)});
- const d=h('details',{class:'card fold'},h('summary',{},'Symptom-Tagebuch'),h('p',{class:'small muted',style:'margin:8px 0 4px'},'Optional. Nur ausfüllen, was heute zählt. Welche Symptome hier stehen, stellst du in den Einstellungen ein.'),...rows);if(open)d.open=true;return d}
 function noteField(ph,val){return h('textarea',{class:'inp',rows:3,placeholder:ph||'Notiz (optional) …'},val||'')}
 
 function backbar(title,fn){return h('div',{class:'backbar'},h('button',{class:'icon',onclick:fn,'aria-label':'Zurück'},'←'),h('h2',{},title))}
 const lastTrain=()=>{for(let i=S.sessions.length-1;i>=0;i--)if(S.sessions[i].type==='train')return S.sessions[i];return null};
 const minutesToday=()=>S.sessions.filter(s=>s.date===dstr()&&s.type!=='pause').reduce((a,s)=>a+(s.minutes||0),0);
-function checkin(diary=false){const ans={},sym={},last=lastTrain(),askPem=last&&daysBetween(last.date,dstr())<=3&&last.pem==null;
- const groups=[{k:'energy',q:'Wie viel Energie hast du heute?',o:[[1,'Kaum'],[2,'Wenig'],[3,'Okay'],[4,'Gut']]},{k:'fog',q:'Wie klar ist dein Kopf?',o:[[1,'Sehr neblig'],[2,'Etwas neblig'],[3,'Klar']]}];
+const SYM=[['erschoepfung','Erschöpfung / Fatigue','haupt'],['crash','Crash-Gefühl / PEM','haupt'],['schlaf','Schlaf nicht erholsam','haupt'],['schmerz','Muskel- / Gelenkschmerzen','haupt'],['kopfschmerz','Kopfschmerzen','haupt'],['grippe','Grippegefühl / Halsschmerzen','haupt'],
+['kreislauf','Kreislauf / Schwindel im Stehen','auto'],['herz','Herzrasen / Puls hoch','auto'],['atem','Atemnot / Lufthunger','auto'],['temperatur','Temperatur: Schwitzen / Frösteln','auto'],['gleichgewicht','Benommenheit / Gleichgewicht','auto'],
+['reize','Reizempfindlichkeit (Licht, Lärm)','neuro'],['kribbeln','Kribbeln / Taubheit','neuro'],['wortfindung','Wortfindung / Sprache','neuro'],['gedaechtnis','Gedächtnis / Vergesslichkeit','neuro'],['geschmack','Geschmack / Geruch verändert','neuro'],
+['magen','Magen / Darm / Übelkeit','sonst'],['mcas','Allergieartig (Rötung, Juckreiz)','sonst'],['stimmung','Gedrückte Stimmung','sonst']];
+const SYMG={haupt:'Hauptsymptome',auto:'Kreislauf & autonomes Nervensystem',neuro:'Kopf, Nerven & Sinne',sonst:'Sonstiges'};
+const SYMDEF=['erschoepfung','crash','schlaf','schmerz','kopfschmerz','grippe','kreislauf','herz','reize'];
+const SYML=Object.fromEntries(SYM.map(s=>[s[0],s[1]]));const SEV=['keine','leicht','mittel','stark'];
+const PEMS=['Kein Crash','Ankündigung','Aktiver Crash','Erholungsphase'];
+const TOD=[['morgens','Morgens'],['mittags','Mittags'],['abends','Abends'],['nachts','Nachts']];
+const todNow=()=>{const hr=new Date().getHours();return hr<5?'nachts':hr<11?'morgens':hr<17?'mittags':hr<23?'abends':'nachts'};
+const TAGK={koerper:'Körperlich',kopf:'Geistig',sozial:'Sozial / emotional',reize:'Unterwegs / Reize',termin:'Termine & Therapie',med:'Medikamente',eigen:'Eigene'};
+const TAGDEF=[['Haushalt','koerper'],['Duschen','koerper'],['Spaziergang','koerper'],['Einkaufen','koerper'],['Gartenarbeit','koerper'],['Autofahren','koerper'],
+['Bildschirm / Büro','kopf'],['Lesen','kopf'],['Papierkram','kopf'],['Training (Kopfzeit)','kopf'],
+['Besuch','sozial'],['Telefonat','sozial'],['Familienfeier','sozial'],['Stress / Streit','sozial'],
+['Essen gehen','reize'],['Kino','reize'],['Laute Umgebung','reize'],['Ausflug / Fahrt','reize'],
+['Arzttermin','termin'],['Therapie','termin'],['Logopädie','termin'],['Ergotherapie','termin'],['Physiotherapie','termin']];
+const allTags=()=>{const own=(S.settings.tags||[]);const m=new Map(TAGDEF.map(([n,k])=>[n,k]));own.forEach(t=>m.set(t.n,t.k));return [...m].filter(([n])=>!(S.settings.tagsHidden||[]).includes(n))};
+function seg4(cur,onPick,labels=SEV){const seg=h('div',{class:'seg'});labels.forEach((l,v)=>{const b=h('button',{class:'v'+v+(cur()===v?' on':''),type:'button'},l);b.onclick=()=>{onPick(cur()===v?undefined:v);seg.querySelectorAll('button').forEach((x,j)=>x.classList.toggle('on',cur()===j))};seg.append(b)});return seg}
+function symCard(state,open){const keys=(S.settings.sym||SYMDEF).filter(k=>SYML[k]),body=h('div');
+ const draw=()=>{body.innerHTML='';for(const g of Object.keys(SYMG)){const ks=keys.filter(k=>SYM.find(s=>s[0]===k)[2]===g);if(!ks.length)continue;body.append(h('p',{class:'small muted',style:'margin:12px 0 2px;text-transform:uppercase;letter-spacing:.05em;font-size:.7em'},SYMG[g]));
+  ks.forEach(k=>body.append(h('div',{class:'symrow'},h('span',{class:'lab'},SYML[k]),seg4(()=>state[k],v=>{if(v==null)delete state[k];else state[k]=v;cnt()}))))}cnt()};const sumEl=h('span',{class:'small muted',style:'font-family:DM Sans,sans-serif;margin-left:8px'},'');const cnt=()=>{const n=Object.keys(state).length;sumEl.textContent=n?`· ${n} eingetragen`:''};draw();
+ const lastSym=[...S.checkins].reverse().find(c=>c.sym&&Object.keys(c.sym).length);
+ const tools=h('div',{class:'row',style:'flex-wrap:wrap;margin-top:8px'},lastSym?h('button',{class:'btn sm',type:'button',onclick:()=>{Object.assign(state,lastSym.sym);draw();toast('Werte vom '+relDay(lastSym.date)+' übernommen – jetzt anpassen')}},'Wie letzter Eintrag'):null,
+  h('button',{class:'btn sm',type:'button',onclick:()=>{keys.forEach(k=>{if(state[k]==null)state[k]=0});draw()}},'Rest auf „keine“'));
+ const d=h('details',{class:'card fold'},h('summary',{},'Symptome',sumEl),h('p',{class:'small muted',style:'margin:8px 0 0'},'Nur ausfüllen, was zählt. Leer heißt „nicht erfasst“ – nicht „keine“. Auswahl in den Einstellungen.'),tools,body);if(open)d.open=true;return d}
+function tagCard(sel,open){const box=h('div'),sumEl=h('span',{class:'small muted',style:'font-family:DM Sans,sans-serif;margin-left:8px'},'');
+ const draw=()=>{box.innerHTML='';const nn=Object.keys(sel).length;sumEl.textContent=nn?`· ${nn} ausgewählt`:'';const groups={};allTags().forEach(([n,k])=>(groups[k]=groups[k]||[]).push(n));
+  for(const k of Object.keys(TAGK)){if(!groups[k])continue;box.append(h('p',{class:'small muted',style:'margin:12px 0 6px;text-transform:uppercase;letter-spacing:.05em;font-size:.7em'},TAGK[k]));
+   box.append(h('div',{class:'chips'},groups[k].map(n=>{const st=sel[n];const b=h('button',{class:'chip tagc'+(st===1?' on':st===2?' on hard':''),type:'button'},n+(st===2?' !':''));b.onclick=()=>{sel[n]=sel[n]===1?2:sel[n]===2?undefined:1;if(!sel[n])delete sel[n];draw()};return b})))}
+  const inp=h('input',{class:'inp',type:'text',placeholder:'Eigenes hinzufügen, z. B. „Zahnarzt“ oder ein Medikament',style:'flex:1 1 240px;font-size:.95em;padding:10px 12px'});
+  const kind=h('select',{class:'inp',style:'width:auto;font-size:.9em;padding:10px'},Object.entries(TAGK).filter(([k])=>k!=='eigen').map(([k,l])=>h('option',{value:k},l)));kind.value='termin';
+  const add=()=>{const n=inp.value.trim();if(!n)return;S.settings.tags=[...(S.settings.tags||[]).filter(t=>t.n!==n),{n,k:kind.value}];S.settings.tagsHidden=(S.settings.tagsHidden||[]).filter(x=>x!==n);saveSet();sel[n]=1;draw()};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add()}});
+  box.append(h('div',{class:'row',style:'margin-top:14px;flex-wrap:wrap'},inp,kind,h('button',{class:'btn sm primary',type:'button',onclick:add},'+')))};draw();
+ const d=h('details',{class:'card fold'},h('summary',{},'Was war los?',sumEl),h('p',{class:'small muted',style:'margin:8px 0 0'},'Antippen = war heute · nochmal = war anstrengend (!) · nochmal = weg. Damit die App Muster mit Belastungen erkennen kann.'),box);if(open)d.open=true;return d}
+function checkin(diary=false){const ans={},sym={},tags={},extra={},last=lastTrain(),askPem=last&&daysBetween(last.date,dstr())<=3&&last.pem==null;let day=0,tod=todNow();
+ const groups=[{k:'energy',q:diary?'Wie viel Energie hast du?':'Wie viel Energie hast du heute?',o:[[1,'Kaum'],[2,'Wenig'],[3,'Okay'],[4,'Gut']]},{k:'fog',q:diary?'Wie klar ist dein Kopf?':'Wie klar ist dein Kopf?',o:[[1,'Sehr neblig'],[2,'Etwas neblig'],[3,'Klar']]}];
  if(askPem)groups.push({k:'pem',q:`Ging es dir nach dem letzten Training (${relDay(last.date)}) schlechter?`,o:[[2,'Ja, deutlich'],[1,'Etwas'],[0,'Nein']]});
  if(!diary)groups.push({k:'busy',q:'Steht heute noch viel an?',o:[[1,'Ja, einiges'],[0,'Eher nicht']]});
- const note=noteField(diary?'Was war heute? Belastungen, Termine, Besonderheiten … (optional)':'Notiz (optional) – z. B. schlecht geschlafen, Arzttermin, Infekt …');
- const go=h('button',{class:'btn primary',disabled:true},diary?'Speichern':'Weiter');
- go.onclick=()=>{if(askPem&&ans.pem!=null)last.pem=ans.pem;const ci={date:dstr(),ts:Date.now(),...ans};if(Object.keys(sym).length)ci.sym={...sym};const n=note.value.trim();if(n)ci.note=n;if(diary)ci.diary=true;S.checkins.push(ci);save();
-  if(diary){toast('Tagebuch-Eintrag gespeichert');home()}else plan(ci,last)};
- screen(backbar(diary?'Tagebuch':'Check-in',home),h('div',{class:'cards2'},groups.map(g=>{const chips=h('div',{class:'chips'});g.o.forEach(([v,l])=>{const b=h('button',{class:'chip'},l);
-   b.onclick=()=>{ans[g.k]=v;chips.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');go.disabled=!groups.every(x=>ans[x.k]!=null)};chips.append(b)});
-  return h('div',{class:'card'},h('h3',{},g.q),chips)})),symCard(sym,diary||!!S.settings.symOpen),h('div',{class:'card'},h('h3',{},'Notiz'),note),go);wide()}
+ const req=diary?[]:groups.map(g=>g.k);
+ const note=noteField(diary?'Was war heute? Besonderheiten, Gedanken … (optional)':'Notiz (optional) – z. B. schlecht geschlafen, Arzttermin, Infekt …');
+ const go=h('button',{class:'btn primary',disabled:!diary},diary?'Speichern':'Weiter');
+ const upd=()=>{go.disabled=!req.every(k=>ans[k]!=null)};
+ const chipGroup=(opts,cur,onPick)=>{const c=h('div',{class:'chips'});opts.forEach(([v,l])=>{const b=h('button',{class:'chip'+(cur()===v?' on':''),type:'button'},l);b.onclick=()=>{onPick(cur()===v&&diary?undefined:v);c.querySelectorAll('.chip').forEach((x,j)=>x.classList.toggle('on',cur()===opts[j][0]))};c.append(b)});return c};
+ let other=false;const whenBox=h('div',{style:'display:none;margin-top:12px'},h('div',{class:'row',style:'flex-wrap:wrap;gap:14px'},chipGroup([[0,'Heute'],[1,'Gestern']],()=>day,v=>{day=v==null?0:v}),chipGroup(TOD,()=>tod,v=>{tod=v||todNow()})));
+ const when=diary?h('div',{class:'card'},chipGroup([[false,'Jetzt'],[true,'Anderer Zeitpunkt …']],()=>other,v=>{other=!!v;if(!other){day=0;tod=todNow()}whenBox.style.display=other?'':'none'}),whenBox):null;
+ const pemCard=h('details',{class:'card fold'},h('summary',{},'Crash-Status & Schlaf'),h('h3',{style:'margin-top:12px'},'Crash-Status'),seg4(()=>extra.pemS,v=>{if(v==null)delete extra.pemS;else extra.pemS=v},PEMS),
+  h('h3',{style:'margin-top:16px'},'Schlaf letzte Nacht'),chipGroup([['<5','unter 5 Std'],['5-6','5–6'],['6-7','6–7'],['7-8','7–8'],['8+','über 8']],()=>extra.sleepH,v=>{if(v==null)delete extra.sleepH;else extra.sleepH=v}));
+ go.onclick=()=>{if(askPem&&ans.pem!=null)last.pem=ans.pem;const ci={date:dstr(addDays(-day)),ts:Date.now(),tod,...ans,...extra};if(Object.keys(sym).length)ci.sym={...sym};const tg=Object.entries(tags).map(([t,x])=>({t,x}));if(tg.length)ci.tags=tg;const n=note.value.trim();if(n)ci.note=n;if(diary)ci.diary=true;
+  if(diary&&!Object.keys(ci).filter(k=>!['date','ts','tod','diary'].includes(k)).length){toast('Bitte mindestens eine Angabe machen');return}S.checkins.push(ci);save();if(diary){toast('Tagebuch-Eintrag gespeichert');home()}else plan(ci,last)};
+ screen(backbar(diary?'Tagebuch':'Check-in',home),when,h('div',{class:'cards2'},groups.map(g=>h('div',{class:'card'},h('h3',{},g.q),chipGroup(g.o,()=>ans[g.k],v=>{if(v==null)delete ans[g.k];else ans[g.k]=v;upd()})))),
+  symCard(sym,!!S.settings.symOpen),tagCard(tags,false),pemCard,(()=>{const d=h('details',{class:'card fold'},h('summary',{},'Notiz'),h('div',{style:'margin-top:10px'},note));return d})(),go);wide()}
+/* Muster: Belastung -> schlechte Folgetage */
+function dayBad(d){const cs=S.checkins.filter(c=>c.date===d);if(!cs.length)return null;return cs.some(c=>c.pemS===2||c.energy===1||(c.sym&&((c.sym.crash||0)>=2||(c.sym.erschoepfung||0)>=3)))}
+function dayLoads(d){const L=new Set();S.checkins.filter(c=>c.date===d).forEach(c=>(c.tags||[]).forEach(t=>L.add(t.t)));const m=S.sessions.filter(s=>s.date===d&&s.type!=='pause').reduce((a,s)=>a+(s.minutes||0),0);if(m>0)L.add('Training (Kopfzeit)');if(m>15)L.add('Training über 15 Min');return L}
+function patterns(){const days=[...new Set([...S.checkins.map(c=>c.date),...S.sessions.map(s=>s.date)])].filter(d=>daysBetween(d,dstr())<=120).sort();const rows=[];
+ for(const d of days){const f=[dstr(new Date(new Date(d+'T12:00:00').getTime()+864e5)),dstr(new Date(new Date(d+'T12:00:00').getTime()+2*864e5))].map(dayBad).filter(x=>x!=null);if(!f.length)continue;rows.push({d,loads:dayLoads(d),bad:f.some(Boolean)})}
+ if(rows.length<10)return{n:rows.length,list:[]};const base=rows.filter(r=>r.bad).length/rows.length;const cnt={};
+ rows.forEach(r=>r.loads.forEach(t=>{cnt[t]=cnt[t]||{n:0,b:0};cnt[t].n++;if(r.bad)cnt[t].b++}));
+ const list=Object.entries(cnt).filter(([t,c])=>c.n>=3&&c.b/c.n-base>=.25).map(([t,c])=>({t,n:c.n,b:c.b,r:c.b/c.n})).sort((a,b)=>b.r-a.r);return{n:rows.length,base,list}}
+function patternText(p){return p.list.map(x=>`Nach „${x.t}“ (${x.n}×) folgte ${x.b}× innerhalb von 2 Tagen ein schlechter Tag – sonst in ${Math.round(p.base*100)} % der Fälle.`)}
+function patternCard(){const p=patterns();
+ return h('div',{class:'card'},h('h3',{},'Mögliche Auslöser'),p.n<10?h('p',{class:'small muted',style:'margin:0'},`Noch zu wenig Daten (${p.n} von 10 Tagen mit Tagebuch an den Folgetagen). Trag ein paar Tage lang ein, was los war und wie es dir ging.`)
+  :p.list.length?h('div',{},h('ul',{style:'padding-left:1.2em;margin:0'},patternText(p).map(t=>h('li',{class:'small',style:'margin-bottom:6px'},t))),h('p',{class:'small muted',style:'margin:6px 0 0'},'„Schlechter Tag“ = Energie kaum, aktiver Crash, starke Erschöpfung oder mittleres Crash-Gefühl. Zusammenhänge sind Hinweise, keine Beweise.'))
+  :h('p',{class:'small muted',style:'margin:0'},`Bisher kein auffälliges Muster (${p.n} Tage ausgewertet).`))}
 function learnLimit(){const ss=S.sessions.filter(s=>s.type==='train'&&(s.pem!=null||s.after)).slice(-30);if(ss.length<6)return{n:ss.length,limit:null};
  const bad=s=>(s.pem||0)>=1||s.after==='erschoepft';let best=null;
  for(const T of [5,10,15,20,25]){const ab=ss.filter(s=>s.minutes>T+1),be=ss.filter(s=>s.minutes<=T+1);if(ab.length<3||be.length<2)continue;
@@ -1225,7 +1276,7 @@ function history(){const W=['Mo','Di','Mi','Do','Fr','Sa','So'];const start=addD
   h('div',{class:'card'},h('p',{class:'muted small',style:'margin:0 0 8px'},'Letzte 4 Wochen'),h('div',{class:'month'},cells),
    h('div',{class:'legend'},h('span',{},h('i',{style:'background:var(--accent);border-color:var(--accent)'}),'trainiert'),h('span',{},h('i',{style:'border-style:dashed;border-color:var(--muted)'}),'Pause-Tag')),
    h('p',{style:'margin:12px 0 0'},`Letzte 7 Tage: ${fmtMin(weekMin)}`)),
-  limitCard(),diaryCard(),
+  limitCard(),patternCard(),diaryCard(),
   h('div',{class:'cards2'},Object.entries(DOM).map(([d,o])=>h('div',{class:'card'},h('span',{class:'dom',style:`--dc:${o.c}`},o.n),h('ul',{class:'list-clean',style:'margin-top:8px'},
    [...EX.filter(e=>e.dom===d),...(d==='mem'?[AUFTRAG]:[])].map(e=>{const hs=(S.hist[e.id]||[]).slice(-10),sec=e.id==='tonhalte'&&hs.length&&hs[hs.length-1].val!=null;return h('li',{style:'align-items:center'},h('span',{style:'flex:1'},e.name,sec?h('span',{class:'muted small'},` · zuletzt ${fmtS(hs[hs.length-1].val)} s, bester ${fmtS(Math.max(...hs.filter(x=>x.val!=null).map(x=>x.val)))} s`):null),sec?spark(hs.filter(x=>x.val!=null).map(x=>Math.min(1,x.val/30))):spark(hs.map(x=>x.acc)),lvlBar(baseLevel(e.id)))}))))),
   recent.length?h('div',{class:'card'},h('h3',{},'Letzte Einheiten'),h('ul',{class:'list-clean'},recent.map(s=>h('li',{},h('span',{},`${relDay(s.date)} · ${fmtMin(s.minutes||0)}`),h('span',{class:'muted small'},[s.energy?`Energie ${s.energy}/4`:'',s.after?`danach ${AF[s.after]}`:'',s.pem===2?'Verschlechterung':s.pem===1?'etwas schlechter':'',s.fatigueAt!=null?`Ermüdung ab ${Math.round(s.fatigueAt)} Min`:''].filter(Boolean).join(' · ')))))):null);wide()}
@@ -1251,6 +1302,7 @@ function settings(){const st=S.settings;
   h('div',{class:'card'},h('h3',{},'Bereiche im Training'),Object.entries(DOM).map(([d,o])=>tg(o.n,!!st.domains[d],i=>{st.domains[d]=i.checked;if(!Object.values(st.domains).some(Boolean)){st.domains[d]=true;i.checked=true;toast('Mindestens ein Bereich bleibt an')}saveSet()}))),
   h('div',{class:'card'},h('h3',{},'Obergrenze pro Tag'),maxC,h('p',{class:'muted small',style:'margin:8px 0 0'},'Mehr lässt die App nicht planen.')),
   h('div',{class:'card'},h('h3',{},'Symptom-Tagebuch'),h('p',{class:'muted small',style:'margin:0 0 6px'},'Welche Symptome sollen beim Check-in und im Tagebuch abgefragt werden?'),SYM.map(([k,l])=>tg(l,symSel.has(k),i=>{i.checked?symSel.add(k):symSel.delete(k);st.sym=SYM.map(x=>x[0]).filter(x=>symSel.has(x));saveSet()})),tg('Beim Check-in immer aufgeklappt',!!st.symOpen,i=>{st.symOpen=i.checked;saveSet()})),
+  h('div',{class:'card'},h('h3',{},'„Was war los?“ – Einträge'),h('p',{class:'muted small',style:'margin:0 0 6px'},'Ausschalten blendet einen Eintrag aus. Eigene Einträge legst du direkt im Tagebuch an.'),[...TAGDEF.map(([n,k])=>({n,k})),...(st.tags||[])].filter((t,i,a)=>a.findIndex(x=>x.n===t.n)===i).map(t=>tg(`${t.n} · ${TAGK[t.k]||''}`,!(st.tagsHidden||[]).includes(t.n),i=>{const hd=new Set(st.tagsHidden||[]);i.checked?hd.delete(t.n):hd.add(t.n);st.tagsHidden=[...hd];saveSet()}))),
   h('div',{class:'card'},h('h3',{},'Bericht'),h('p',{class:'muted small',style:'margin:0 0 6px'},'Name, der oben im Bericht stehen soll (optional):'),nameIn),
   syncCard(),
   h('div',{class:'card'},h('h3',{},'Daten'),h('p',{class:'muted small'},fbUser?'Wird über Firebase synchronisiert. Export ist zusätzlich als Backup möglich. „Alle Daten löschen“ löscht nur auf diesem Gerät – andere Geräte bringen ihre Daten beim nächsten Abgleich wieder mit.':'Ohne Synchronisierung bleibt alles nur auf diesem Gerät, in diesem Browser. Für Backup oder Gerätewechsel exportieren.'),
@@ -1258,9 +1310,10 @@ function settings(){const st=S.settings;
   rulesCard(),
   h('div',{class:'card'},h('h3',{},'Über Kopfzeit'),h('p',{class:'small muted',style:'margin:0'},'Übungsformen angelehnt an gängiges kognitives Training: Aufmerksamkeit, Merkspanne, Wortfindung, Verarbeitungstempo, Handlungsplanung. Die Schwierigkeit passt sich automatisch an (Stufe 1–10). Die App achtet auf Ermüdungszeichen (langsamer werden, mehr Fehler zum Ende, Ergebnis unter deinem Schnitt) und lernt aus deinen Rückmeldungen eine persönliche Zeitgrenze. Kein Ersatz für Therapie.'))));wide()}
 
-function diaryCard(){const list=S.checkins.filter(c=>c.sym||c.note||c.diary).slice(-8).reverse();if(!list.length)return null;const EL={1:'kaum',2:'wenig',3:'okay',4:'gut'};
+function diaryCard(){const list=S.checkins.filter(c=>c.sym||c.note||c.diary||c.tags||c.pemS!=null).slice(-8).reverse();if(!list.length)return null;const EL={1:'kaum',2:'wenig',3:'okay',4:'gut'};
  return h('div',{class:'card'},h('h3',{},'Tagebuch'),h('ul',{class:'list-clean'},list.map(c=>{const strong=c.sym?Object.entries(c.sym).filter(([k,v])=>v>=2).map(([k,v])=>`${(SYML[k]||k).split(' /')[0]} ${SEV[v]}`):[];
-  return h('li',{style:'display:block'},h('div',{class:'small'},`${relDay(c.date)} · Energie ${EL[c.energy]||'–'}`+(strong.length?' · '+strong.join(', '):'')),c.note?h('div',{class:'small muted',style:'white-space:pre-wrap'},c.note):null)})),
+  const head=[relDay(c.date)+' '+(c.tod?TOD.find(t=>t[0]===c.tod)[1].toLowerCase():new Date(c.ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})),c.energy?'Energie '+EL[c.energy]:'',c.pemS!=null?PEMS[c.pemS]:'',c.sleepH?'Schlaf '+c.sleepH+' h':''].filter(Boolean).join(' · ');
+  return h('li',{style:'display:block'},h('div',{class:'small'},head),strong.length?h('div',{class:'small muted'},strong.join(', ')):null,c.tags&&c.tags.length?h('div',{class:'small muted'},'Los: '+c.tags.map(t=>t.t+(t.x===2?' (anstrengend)':'')).join(', ')):null,c.note?h('div',{class:'small muted',style:'white-space:pre-wrap'},c.note):null)})),
   h('button',{class:'btn sm',style:'margin-top:8px',onclick:reportScreen},'Als Bericht anzeigen'))}
 function rulesCard(){const txt=`rules_version = '2';
 service cloud.firestore {
@@ -1305,15 +1358,17 @@ function reportParts(weeks){const n=weeks*7,days=[];for(let k=n-1;k>=0;k--)days.
  const line=(k,max,col,dash)=>{let p='';days.forEach((d,i)=>{const v=avgOf(d,k);if(v==null)return;const x=pl+i*cw+cw/2,y=pt+(H-pt-pb)*(1-(v-1)/(max-1));p+=(p?' L':'M')+x.toFixed(1)+' '+y.toFixed(1)});return p?`<path d="${p}" fill="none" stroke="${col}" stroke-width="2" ${dash?'stroke-dasharray="4 3"':''}/>`:''};
  g+=line('energy',4,'#2f6fd6')+line('fog',3,'#8a5bd6',1)+'</svg>';
  // Symptome
- const symKeys=SYM.map(s=>s[0]).filter(k=>cis.some(c=>c.sym&&c.sym[k]!=null));
- let hm='';if(symKeys.length){hm='<table class="hm"><tr><th></th>'+days.map((d,i)=>`<td style="height:auto;font-size:8px;color:#999;text-align:center">${i%7===0?dDE(d).slice(0,2):''}</td>`).join('')+'</tr>';
-  for(const k of symKeys){hm+=`<tr><th>${esc(SYML[k])}</th>`+days.map(d=>{const v=cis.filter(c=>c.date===d&&c.sym&&c.sym[k]!=null).map(c=>c.sym[k]);return `<td style="background:${v.length?SEVC[Math.max(...v)]:'#f4f4f6'}" title="${dDE(d)}"></td>`}).join('')+'</tr>'}hm+='</table><div class="lg">'+SEV.map((l,i)=>`<span><i style="background:${SEVC[i]}"></i>${l}</span>`).join('')+'<span><i style="background:#f4f4f6"></i>nicht erfasst</span></div>'}
+ const symKeys=SYM.map(s=>s[0]).filter(k=>cis.some(c=>c.sym&&c.sym[k]!=null));const PEMC=['#dff1e6','#f8e08e','#e2716a','#b9d3f0'];const hasP=cis.some(c=>c.pemS!=null),tagDays=d=>{const ts=cis.filter(c=>c.date===d).flatMap(c=>c.tags||[]);return ts.length?Math.min(3,ts.length+ts.filter(t=>t.x===2).length):null};const hasT=cis.some(c=>c.tags);
+ let hm='';if(symKeys.length||hasP||hasT){hm='<table class="hm"><tr><th></th>'+days.map((d,i)=>`<td style="height:auto;font-size:8px;color:#999;text-align:center">${i%7===0?dDE(d).slice(0,2):''}</td>`).join('')+'</tr>';
+  if(hasP)hm+='<tr><th><b>Crash-Status</b></th>'+days.map(d=>{const v=cis.filter(c=>c.date===d&&c.pemS!=null).map(c=>c.pemS);const w=v.includes(2)?2:v.includes(1)?1:v.includes(3)?3:v.length?0:null;return `<td style="background:${w==null?'#f4f4f6':PEMC[w]}" title="${dDE(d)}${w!=null?' '+PEMS[w]:''}"></td>`}).join('')+'</tr>';
+  if(hasT)hm+='<tr><th><b>Belastungen</b></th>'+days.map(d=>{const v=tagDays(d);return `<td style="background:${v==null?'#f4f4f6':['#eee','#d6dcf5','#a9b6ea','#6f7fd6'][v]}"></td>`}).join('')+'</tr>';
+  for(const k of symKeys){hm+=`<tr><th>${esc(SYML[k])}</th>`+days.map(d=>{const v=cis.filter(c=>c.date===d&&c.sym&&c.sym[k]!=null).map(c=>c.sym[k]);return `<td style="background:${v.length?SEVC[Math.max(...v)]:'#f4f4f6'}" title="${dDE(d)}"></td>`}).join('')+'</tr>'}hm+='</table><div class="lg">'+SEV.map((l,i)=>`<span><i style="background:${SEVC[i]}"></i>${l}</span>`).join('')+'<span><i style="background:#f4f4f6"></i>nicht erfasst</span>'+(hasP?'<span>Crash-Status: '+PEMS.map((l,i)=>`<i style="background:${PEMC[i]}"></i>${l}`).join(' ')+'</span>':'')+(hasT?'<span><i style="background:#6f7fd6"></i>Belastungen (je dunkler, desto mehr)</span>':'')+'</div>'}
  // Tagebuch
  const EL={1:'kaum',2:'wenig',3:'okay',4:'gut'},FL={1:'sehr neblig',2:'etwas neblig',3:'klar'},AF={gleich:'wie vorher',muede:'etwas müder',erschoepft:'erschöpft'};
- const rows=[];cis.forEach(c=>{const strong=c.sym?Object.entries(c.sym).filter(([k,v])=>v>=2).map(([k,v])=>`${SYML[k]||k} (${SEV[v]})`):[];rows.push({ts:c.ts,d:c.date,a:`${c.diary?'Tagebuch':'Check-in'} · Energie ${EL[c.energy]||'–'} · Kopf ${FL[c.fog]||'–'}${c.pem===2?' · nach letztem Training deutlich schlechter':c.pem===1?' · nach letztem Training etwas schlechter':''}`,b:strong.join(', '),n:c.note||''})});
- trs.forEach(s=>{if(s.after||s.afterNote||s.fatigueAt!=null)rows.push({ts:s.id,d:s.date,a:`Training ${fmtMin(s.minutes||0)}${s.after?' · danach '+AF[s.after]:''}${s.fatigueAt!=null?' · Ermüdungszeichen nach '+Math.round(s.fatigueAt)+' Min':''}`,b:'',n:s.afterNote||''})});
+ const rows=[];cis.forEach(c=>{const strong=c.sym?Object.entries(c.sym).filter(([k,v])=>v>=2).map(([k,v])=>`${SYML[k]||k} (${SEV[v]})`):[];const tm=(c.tod?TOD.find(t=>t[0]===c.tod)[1]:'')+' '+new Date(c.ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr';rows.push({ts:c.ts,d:c.date,tm,a:[c.diary?'Tagebuch':'Check-in',c.energy?'Energie '+EL[c.energy]:'',c.fog?'Kopf '+FL[c.fog]:'',c.pemS!=null?PEMS[c.pemS]:'',c.sleepH?'Schlaf '+c.sleepH+' h':'',c.pem===2?'nach letztem Training deutlich schlechter':c.pem===1?'nach letztem Training etwas schlechter':''].filter(Boolean).join(' · ')+(c.tags&&c.tags.length?' · Los: '+c.tags.map(t=>t.t+(t.x===2?' (anstrengend)':'')).join(', '):''),b:strong.join(', '),n:c.note||''})});
+ trs.forEach(s=>{if(s.after||s.afterNote||s.fatigueAt!=null)rows.push({ts:s.id,d:s.date,tm:new Date(s.id).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr',a:`Training ${fmtMin(s.minutes||0)}${s.after?' · danach '+AF[s.after]:''}${s.fatigueAt!=null?' · Ermüdungszeichen nach '+Math.round(s.fatigueAt)+' Min':''}`,b:'',n:s.afterNote||''})});
  rows.sort((x,y)=>x.ts-y.ts);
- const diary=rows.length?'<table><tr><th style="width:52px">Datum</th><th>Eintrag</th><th>Starke Symptome</th><th>Notiz</th></tr>'+rows.map(r=>`<tr><td>${dDE(r.d)}</td><td>${esc(r.a)}</td><td>${esc(r.b)}</td><td class="note">${esc(r.n)}</td></tr>`).join('')+'</table>':'<p>Keine Einträge im Zeitraum.</p>';
+ const diary=rows.length?'<table><tr><th style="width:70px">Datum</th><th>Eintrag</th><th>Starke Symptome</th><th>Notiz</th></tr>'+rows.map(r=>`<tr><td>${dDE(r.d)}<br><span style="color:#888;font-size:11px">${esc(r.tm||'')}</span></td><td>${esc(r.a)}</td><td>${esc(r.b)}</td><td class="note">${esc(r.n)}</td></tr>`).join('')+'</table>':'<p>Keine Einträge im Zeitraum.</p>';
  // Training
  let trt='<table><tr><th>Bereich</th><th>Übung</th><th>Durchgänge</th><th>Stufe</th><th>Ø Ergebnis</th></tr>';let any=false;
  for(const [dk,o] of Object.entries(DOM))for(const e of [...EX.filter(x=>x.dom===dk),...(dk==='mem'?[AUFTRAG]:[])]){const hs=(S.hist[e.id]||[]).filter(x=>inR(x.d));if(!hs.length)continue;any=true;
@@ -1324,7 +1379,7 @@ function reportParts(weeks){const n=weeks*7,days=[];for(let k=n-1;k>=0;k--)days.
 <div class="kpis"><div class="kpi"><b>${trainDays}</b><span>Trainingstage</span></div><div class="kpi"><b>${Math.round(mins)} Min</b><span>Training gesamt${trainDays?' · Ø '+Math.round(mins/trainDays)+' Min/Tag':''}</span></div><div class="kpi"><b>${pauseDays}</b><span>bewusste Pause-Tage</span></div><div class="kpi"><b>${pem1+pem2}</b><span>Verschlechterungen nach Training (${pem2} deutlich)</span></div></div>
 <p style="margin:10px 0 0">Danach erschöpft: ${exh}× · Ermüdungszeichen während des Trainings: ${fat}× · Gelernte Belastungsgrenze: ${lim.limit!=null?lim.limit+' Min':'noch nicht ermittelt'}</p>
 <h2>Tagesform und Training</h2>${g}<div class="lg"><span><i style="background:#2f6fd6"></i>Energie (1 kaum – 4 gut)</span><span><i style="background:#8a5bd6"></i>Kopf klar (1 sehr neblig – 3 klar, gestrichelt)</span><span><i style="background:#c9daf8"></i>Trainingsminuten</span><span><i style="background:#bbb"></i>Pause-Tag</span><span><i style="background:#e2716a"></i>Verschlechterung nach Training</span></div>
-${symKeys.length?'<h2>Symptom-Tagebuch</h2>'+hm:''}
+${hm?'<h2>Symptom-Tagebuch</h2>'+hm:''}${(()=>{const pt=patterns();const tc={};cis.forEach(c=>(c.tags||[]).forEach(t=>{tc[t.t]=tc[t.t]||[0,0];tc[t.t][0]++;if(t.x===2)tc[t.t][1]++}));const te=Object.entries(tc).sort((a,b)=>b[1][0]-a[1][0]);return (te.length?'<h2>Belastungen im Zeitraum</h2><p>'+te.map(([t,[n,x]])=>esc(t)+' '+n+'×'+(x?' ('+x+'× anstrengend)':'')).join(' · ')+'</p>':'')+(pt.list.length?'<h2>Mögliche Auslöser</h2><ul>'+patternText(pt).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul><p style="color:#666;font-size:11px">Ausgewertet: letzte 120 Tage. „Schlechter Tag“ = Energie kaum, aktiver Crash, starke Erschöpfung oder mittleres Crash-Gefühl am 1. oder 2. Folgetag. Hinweise, keine Beweise.</p>':'')})()}
 <h2>Einträge und Notizen</h2>${diary}
 <h2>Training nach Übungen</h2>${trt}
 <p class="foot">Selbst erfasste Daten aus der Trainings-App „Kopfzeit“ (kognitives Training mit Pacing). Kein medizinisches Messinstrument. Stufen 1–10 passen sich automatisch an; „Ø Ergebnis“ = Anteil richtiger Antworten.</p></div>`;
