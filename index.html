@@ -184,11 +184,12 @@ details.fold[open]>summary::after{content:' ▴'}
 @media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}body{background:#fff!important;color:#000!important}}
 #splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .5s;cursor:pointer}
 #splash.out{opacity:0;pointer-events:none}
-#splash .sp{text-align:center;animation:spIn 1s ease-out both}
+#splash .sp{text-align:center;animation:spIn 1.4s ease-out both}
 #splash svg circle{fill:none;stroke-linecap:round}
-#splash .r1{stroke:var(--accent);stroke-width:7;stroke-dasharray:330;stroke-dashoffset:330;animation:spDraw 1.2s .1s ease-out forwards}
-#splash .r2{stroke:#c3a6ff;stroke-width:6;stroke-dasharray:240;stroke-dashoffset:240;animation:spDraw 1.1s .35s ease-out forwards}
-#splash .dot{fill:#7fd1a8;opacity:0;animation:spFade .4s 1s forwards}
+#splash .r1{stroke:var(--accent);stroke-width:7;stroke-dasharray:330;stroke-dashoffset:330;animation:spDraw 1.8s .2s ease-out forwards}
+#splash .r2{stroke:#c3a6ff;stroke-width:6;stroke-dasharray:240;stroke-dashoffset:240;animation:spDraw 1.7s .6s ease-out forwards}
+#splash .dot{fill:#7fd1a8;opacity:0;animation:spFade .6s 1.9s forwards}
+#splash .ver{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:var(--muted);font-size:.8em;opacity:0;animation:spFade .8s 1.2s forwards}
 #splash h1{font-size:2.4em;margin:14px 0 4px}
 #splash p{color:var(--muted);margin:0}
 @keyframes spIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -216,6 +217,7 @@ select.inp{appearance:auto}
 <div id="app"></div>
 <script>
 'use strict';
+const APP_VERSION='1.12',APP_DATE='10/2026',APP_AUTHOR='Uli Louwers';
 /* ================= Helpers ================= */
 const rnd=n=>Math.floor(Math.random()*n);
 const pick=a=>a[rnd(a.length)];
@@ -1258,6 +1260,7 @@ function home(){if(curCtx)curCtx.kill();stopTicker();breathTok++;run=null;demo=f
    h('div',{class:'stack'},h('button',{class:'btn primary',style:'min-height:64px;font-size:1.1em',onclick:()=>checkin()},mt>0?'Noch eine Einheit':'Training starten'),
     h('div',{class:'tiles4'},h('button',{class:'btn',onclick:()=>checkin(true)},'Tagebuch-Eintrag'),h('button',{class:'btn',onclick:freeList},'Einzelne Übung'),h('button',{class:'btn',onclick:history},'Verlauf'),h('button',{class:'btn',onclick:reportScreen},'Bericht & Teilen')),
     h('button',{class:'btn ghost',onclick:demoList},'Ausprobieren – ohne Speichern'))),
+  h('p',{class:'center muted',style:'font-size:.72em;margin-top:28px;opacity:.7'},`Kopfzeit · Version ${APP_VERSION} · ${APP_DATE} · ${APP_AUTHOR}`),
   (setTimeout(()=>{app.dataset.screen='home';fbBadge()},0),null));wide()}
 function spark(vals){if(vals.length<2)return h('span',{class:'muted small'},vals.length?Math.round(vals[0]*100)+' %':'–');const w=90,hh=26;
  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(hh-3-v*(hh-6)).toFixed(1)}`).join(' ');
@@ -1308,7 +1311,7 @@ function settings(){const st=S.settings;
   h('div',{class:'card'},h('h3',{},'Daten'),h('p',{class:'muted small'},fbUser?'Wird über Firebase synchronisiert. Export ist zusätzlich als Backup möglich. „Alle Daten löschen“ löscht nur auf diesem Gerät – andere Geräte bringen ihre Daten beim nächsten Abgleich wieder mit.':'Ohne Synchronisierung bleibt alles nur auf diesem Gerät, in diesem Browser. Für Backup oder Gerätewechsel exportieren.'),
    h('div',{class:'stack'},h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{const a=h('a',{href:URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})),download:`kopfzeit-${dstr()}.json`});document.body.append(a);a.click();a.remove()}},'Exportieren'),h('button',{class:'btn',onclick:()=>file.click()},'Importieren')),reset,file)),
   rulesCard(),
-  h('div',{class:'card'},h('h3',{},'Über Kopfzeit'),h('p',{class:'small muted',style:'margin:0'},'Übungsformen angelehnt an gängiges kognitives Training: Aufmerksamkeit, Merkspanne, Wortfindung, Verarbeitungstempo, Handlungsplanung. Die Schwierigkeit passt sich automatisch an (Stufe 1–10). Die App achtet auf Ermüdungszeichen (langsamer werden, mehr Fehler zum Ende, Ergebnis unter deinem Schnitt) und lernt aus deinen Rückmeldungen eine persönliche Zeitgrenze. Kein Ersatz für Therapie.'))));wide()}
+  h('div',{class:'card'},h('h3',{},'Über Kopfzeit'),h('p',{class:'small',style:'margin:0 0 6px'},`Version ${APP_VERSION} (${APP_DATE}) · entwickelt von ${APP_AUTHOR}`),h('p',{class:'small muted',style:'margin:0'},'Übungsformen angelehnt an gängiges kognitives Training: Aufmerksamkeit, Merkspanne, Wortfindung, Verarbeitungstempo, Handlungsplanung. Die Schwierigkeit passt sich automatisch an (Stufe 1–10). Die App achtet auf Ermüdungszeichen (langsamer werden, mehr Fehler zum Ende, Ergebnis unter deinem Schnitt) und lernt aus deinen Rückmeldungen eine persönliche Zeitgrenze. Kein Ersatz für Therapie.'))));wide()}
 
 function diaryCard(){const list=S.checkins.filter(c=>c.sym||c.note||c.diary||c.tags||c.pemS!=null).slice(-8).reverse();if(!list.length)return null;const EL={1:'kaum',2:'wenig',3:'okay',4:'gut'};
  return h('div',{class:'card'},h('h3',{},'Tagebuch'),h('ul',{class:'list-clean'},list.map(c=>{const strong=c.sym?Object.entries(c.sym).filter(([k,v])=>v>=2).map(([k,v])=>`${(SYML[k]||k).split(' /')[0]} ${SEV[v]}`):[];
@@ -1423,8 +1426,8 @@ document.addEventListener('keydown',e=>{const tg=e.target;if(tg&&(tg.tagName==='
  if(pad){let lab=null;if(/^[0-9]$/.test(e.key))lab=e.key;else if(e.key==='Backspace')lab='⌫';else if(e.key==='Enter')lab='OK';if(lab){const b=[...pad.querySelectorAll('button')].find(x=>x.textContent===lab);if(b){e.preventDefault();b.click()}return}}
  if(/^[1-6]$/.test(e.key)){const os=[...document.querySelectorAll('#app .grid2 > button.opt, #app .grid2 > button.btn')];const b=os[+e.key-1];if(b&&!b.disabled){e.preventDefault();b.click()}}});
 function splash(){if(S.settings.splash===false||matchMedia('(prefers-reduced-motion:reduce)').matches&&false)return;
- const el=h('div',{id:'splash',html:`<div class="sp"><svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><circle class="r1" cx="75" cy="75" r="58"/><circle class="r2" cx="75" cy="75" r="40"/><circle class="dot" cx="117" cy="34" r="8"/></svg><h1>Kopfzeit</h1><p>Training für den Kopf – in deinem Tempo</p></div>`});
- document.body.append(el);const go=()=>{el.classList.add('out');setTimeout(()=>el.remove(),600)};el.onclick=go;setTimeout(go,1700)}
+ const el=h('div',{id:'splash',html:`<div class="sp"><svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><circle class="r1" cx="75" cy="75" r="58"/><circle class="r2" cx="75" cy="75" r="40"/><circle class="dot" cx="117" cy="34" r="8"/></svg><h1>Kopfzeit</h1><p>Training für den Kopf – in deinem Tempo</p></div><div class="ver">Version ${APP_VERSION} · ${APP_AUTHOR}</div>`});
+ document.body.append(el);const go=()=>{el.classList.add('out');setTimeout(()=>el.remove(),600)};el.onclick=go;setTimeout(go,3300)}
 /* ================= Start ================= */
 applySettings();{const bid=new URLSearchParams(location.search).get('bericht');if(bid)viewShared(bid);else{splash();home();fbInit()}}
 window.KZ={EX,EXM,makeCtx,get S(){return S}};
