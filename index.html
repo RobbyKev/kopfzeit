@@ -202,7 +202,8 @@ function save(){S.checkins=S.checkins.slice(-400);S.sessions=S.sessions.slice(-6
 const FBKEY='kopfzeit_fb';
 const DEVID=(()=>{try{let d=localStorage.getItem('kopfzeit_dev');if(!d){d=Math.random().toString(36).slice(2);localStorage.setItem('kopfzeit_dev',d)}return d}catch(e){return 'x'+Math.random()}})();
 let FB=null,fbUser=null,fbState='aus',fbLast=0,pushT=null,pendingRemote=null,applyingRemote=false,fbUnsub=null;
-function fbConf(){try{return JSON.parse(localStorage.getItem(FBKEY))}catch(e){return null}}
+const FB_DEFAULT={apiKey:"AIzaSyCCLKWY3mI6NO40OGJ3fN0rKcIXDllYKCg",authDomain:"kopfzeit-5bb1a.firebaseapp.com",projectId:"kopfzeit-5bb1a",storageBucket:"kopfzeit-5bb1a.firebasestorage.app",messagingSenderId:"786655945539",appId:"1:786655945539:web:3f4dac687bcc6a171ec5f6"};
+function fbConf(){let c=null;try{c=JSON.parse(localStorage.getItem(FBKEY))}catch(e){}return c||FB_DEFAULT}
 function parseConf(t){let o={};try{o=JSON.parse(t)}catch(e){t.replace(/(\w+)\s*:\s*["']([^"']+)["']/g,(_,k,v)=>{o[k]=v})}return o&&o.apiKey&&o.projectId?o:null}
 function fbErr(e){const c=(e&&e.code)||'';return {'auth/invalid-credential':'E-Mail oder Passwort falsch.','auth/wrong-password':'E-Mail oder Passwort falsch.','auth/user-not-found':'Kein Konto mit dieser E-Mail – erst „Konto anlegen“.','auth/email-already-in-use':'Das Konto gibt es schon – bitte „Anmelden“.','auth/weak-password':'Passwort zu kurz (mindestens 6 Zeichen).','auth/invalid-email':'Die E-Mail-Adresse stimmt nicht.','auth/operation-not-allowed':'In Firebase ist „E-Mail/Passwort“ noch nicht aktiviert.','auth/network-request-failed':'Keine Internetverbindung.','permission-denied':'Firestore-Regeln fehlen oder sind falsch.'}[c]||('Fehler: '+(c||e))}
 function fbBadge(){const el=document.getElementById('fbb');if(!el)return;el.textContent=fbUser?(fbState==='synchron'?'☁︎ synchronisiert':'☁︎ '+fbState):''}
@@ -242,7 +243,7 @@ function syncCard(){const box=h('div',{class:'card'},h('h3',{},'Synchronisierung
   h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{fbPush().then(()=>{toast('Synchronisiert');settings()})}},'Jetzt synchronisieren'),h('button',{class:'btn ghost',onclick:()=>FB.au.signOut(FB.auth).then(()=>setTimeout(settings,200))},'Abmelden')));
  let armed=false;const rm=h('button',{class:'btn ghost small',style:'margin-top:8px'},'Firebase-Konfiguration entfernen');
  rm.onclick=()=>{if(!armed){armed=true;rm.textContent='Sicher? Nochmal tippen';setTimeout(()=>{armed=false;rm.textContent='Firebase-Konfiguration entfernen'},3000);return}try{localStorage.removeItem(FBKEY)}catch(e){}location.reload()};
- box.append(rm);return box}
+ let own=null;try{own=localStorage.getItem(FBKEY)}catch(e){}if(own)box.append(rm);return box}
 
 function applySettings(){document.documentElement.style.setProperty('--accent',S.settings.accent);document.body.classList.toggle('big',!!S.settings.big)}
 
