@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12121f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kopfzeit">
+<title>Kopfzeit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#12121f;--card:#1a1a2c;--card2:#222238;--line:#2e2e4a;--text:#ecebf5;--muted:#9a99b6;--accent:#8fb8ff;--on-accent:#12121f;--ok:#7fd1a8;--bad:#e8a0a0;--fs:18px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:400 var(--fs)/1.5 'DM Sans',system-ui,-apple-system,sans-serif;min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+body.big{--fs:21px}
+#app{max-width:560px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:'DM Serif Display',Georgia,serif;font-weight:400;margin:0 0 .35em;line-height:1.15}
+h1{font-size:2.1em}h2{font-size:1.55em}h3{font-size:1.15em}
+p{margin:.3em 0 .8em}
+.muted{color:var(--muted)}.small{font-size:.84em}.center{text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:12px 0}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit;font-weight:500;padding:13px 16px;border-radius:14px;cursor:pointer;width:100%;text-align:center;min-height:54px;transition:transform .08s,background .25s,border-color .25s;touch-action:manipulation}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:700}
+.btn.ghost{background:transparent}
+.btn.sm{width:auto;min-height:40px;padding:7px 14px;font-size:.84em}
+.btn.warn{border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.38;cursor:default}
+.btn.good,.opt.good{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 22%,var(--card2))}
+.btn.bad,.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--card2))}
+.stack>*+*{margin-top:10px}
+.row{display:flex;gap:10px;align-items:center}
+.row>.btn{flex:1}
+.row>.btn.sm{flex:none}
+.between{justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit;padding:10px 16px;border-radius:999px;cursor:pointer;min-height:48px;touch-action:manipulation}
+.chip.on{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:700}
+.chip small{display:block;font-size:.66em;line-height:1;opacity:.85;margin-top:2px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.icon{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--text);width:46px;height:46px;border-radius:50%;font-size:1.2em;cursor:pointer}
+.backbar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.backbar h2{margin:0;flex:1}
+.dom{display:inline-block;font-size:.72em;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--dc);border:1px solid color-mix(in srgb,var(--dc) 45%,transparent);border-radius:999px;padding:2px 10px}
+/* week dots */
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.wd{font-size:.72em;color:var(--muted)}
+.dotd{width:22px;height:22px;border-radius:50%;margin:4px auto 0;border:2px solid var(--line)}
+.dotd.on{background:var(--accent);border-color:var(--accent)}
+.dotd.pause{border-color:var(--muted);border-style:dashed}
+.dotd.today{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.month{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.month .dotd{width:100%;height:auto;aspect-ratio:1;border-radius:8px;margin:0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78em;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:4px;border:2px solid var(--line);display:inline-block}
+/* session bar */
+.sbar{position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0 10px;margin-bottom:6px}
+.bar{height:6px;border-radius:6px;background:var(--card2);overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);border-radius:6px;transition:width 1s linear}
+/* exercise */
+.exhead{display:flex;align-items:center;gap:10px;margin:4px 0 12px}
+.exhead .t{font-family:'DM Serif Display',Georgia,serif;font-size:1.25em;flex:1}
+.exhead .p{color:var(--muted);font-size:.85em;font-variant-numeric:tabular-nums}
+.grid{display:grid;gap:8px;margin:8px 0}
+.cell{appearance:none;aspect-ratio:1;border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:14px;font:inherit;font-size:1.25em;font-weight:700;cursor:pointer;transition:background .2s,opacity .3s,border-color .2s;touch-action:manipulation}
+.cell.done{opacity:.22}
+.cell.lit{background:var(--accent);border-color:var(--accent)}
+.cell.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 25%,var(--card2))}
+.corsi.watch .cell{cursor:default}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.stage{min-height:220px;border:2px solid var(--line);border-radius:22px;background:var(--card);display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:border-color .15s;margin:6px 0}
+.stage.col{flex-direction:column;gap:18px;min-height:200px}
+.stage.hit{border-color:var(--ok)}.stage.miss{border-color:var(--bad)}
+.sym{font-size:96px;line-height:1}
+.stroop{font-size:2.4em;font-weight:700;letter-spacing:.06em}
+.digit{font-size:5em;font-weight:700;font-variant-numeric:tabular-nums;min-height:1.2em}
+.cmp{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:2em;letter-spacing:.18em;font-weight:700;min-height:1.3em}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;margin-right:6px}
+.typed{display:flex;justify-content:center;gap:8px;margin:12px 0;min-height:52px;flex-wrap:wrap}
+.typed span{width:42px;height:52px;border-radius:10px;border:1px solid var(--line);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.4em;font-weight:700}
+.kpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;transition:opacity .2s}
+.kpad.off{opacity:.3;pointer-events:none}
+.kpad .btn{min-height:58px;font-size:1.3em}
+.note{background:#f4efe1;color:#2a2a35;border:none;transform:rotate(-.6deg)}
+.note h3{color:#2a2a35}
+.note ul{margin:0;padding-left:1.2em;columns:2;font-size:1.1em}
+.note li{margin:2px 0}
+.boxes{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin:14px 0}
+.box{width:34px;height:44px;border-bottom:3px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1.35em;font-weight:700}
+.box.on{border-color:var(--accent)}
+.boxes.solved .box{color:var(--ok);border-color:var(--ok)}
+.def{font-size:1.25em;margin:4px 0 0}
+.inp{width:100%;font:inherit;font-size:1.15em;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card2);color:var(--text);outline:none}
+.inp:focus{border-color:var(--accent)}
+.inp.bad{border-color:var(--bad)}
+.slots,.tiles{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin:12px 0}
+.slot,.tile{appearance:none;width:44px;height:52px;border-radius:12px;font:inherit;font-size:1.35em;font-weight:700;cursor:pointer;touch-action:manipulation}
+.slot{border:2px dashed var(--line);background:transparent;color:var(--text)}
+.slot.on{border-style:solid;border-color:var(--accent)}
+.slots.solved .slot{border-color:var(--ok);color:var(--ok)}
+.slots.bad .slot{border-color:var(--bad)}
+.tile{border:1px solid var(--line);background:var(--card2);color:var(--text)}
+.tile.used{opacity:.15}
+.steps{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.step{appearance:none;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit;padding:12px 14px;border-radius:14px;cursor:pointer;min-height:56px}
+.step .num{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700}
+.step.on .num{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.step.good{border-color:var(--ok)}.step.bad{border-color:var(--bad)}
+.wchips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.wchips .chip.hit{background:color-mix(in srgb,var(--ok) 25%,var(--card2));border-color:var(--ok);color:var(--text)}
+.wchips .chip.miss{border-color:var(--ok);border-style:dashed}
+.wchips .chip.fa{background:color-mix(in srgb,var(--bad) 22%,var(--card2));border-color:var(--bad);color:var(--text)}
+.big-num{font-family:'DM Serif Display',Georgia,serif;font-size:3.2em;line-height:1}
+.breath{width:160px;height:160px;border-radius:50%;margin:30px auto;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 55%,transparent),color-mix(in srgb,var(--accent) 10%,transparent));transform:scale(.55);transition:transform 4s ease-in-out}
+.breath.in{transform:scale(1)}
+.breath.out{transform:scale(.55);transition-duration:6s}
+.exrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.exrow .n{flex:1}
+.lvl{display:flex;gap:2px}
+.lvl i{width:6px;height:14px;border-radius:2px;background:var(--card2)}
+.lvl i.f{background:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);padding:10px 18px;border-radius:999px;z-index:20;font-size:.9em}
+.list-clean{list-style:none;margin:0;padding:0}
+.list-clean li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.list-clean li:last-child{border-bottom:none}
+.swatch{width:40px;height:40px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.swatch.on{border-color:var(--text)}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.toggle:last-child{border-bottom:none}
+.sw{appearance:none;width:52px;height:30px;border-radius:30px;background:var(--card2);border:1px solid var(--line);position:relative;cursor:pointer;flex:none}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--muted);transition:left .2s,background .2s}
+.sw:checked{background:var(--accent)}
+.sw:checked::after{left:25px;background:var(--on-accent)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.stage.split{flex-direction:column;align-items:stretch;padding:0;min-height:260px}
+.half{flex:1;display:flex;align-items:center;justify-content:center;font-size:2.6em;font-weight:700;letter-spacing:.1em;min-height:120px}
+.half:first-child{border-bottom:2px dashed var(--line)}
+body.calm #app{filter:saturate(.5) brightness(.93)}
+.warncard{border-color:color-mix(in srgb,var(--bad) 55%,var(--line));background:color-mix(in srgb,var(--bad) 8%,var(--card))}
+.taskcard{border-style:dashed}
+.bell{appearance:none;border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:14px;min-height:54px;padding:0 20px;font-size:1.35em;cursor:pointer;flex:none}
+.bell.done{opacity:.4}
+.taskwords{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0}
+.taskwords span{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:1.25em;font-weight:700}
+.stage.pair{gap:18px;flex-wrap:wrap;min-height:200px}
+.bridge{font-size:1.6em;font-weight:700;display:flex;gap:10px;align-items:center}
+.bridge .q{color:var(--accent)}
+.glyph{display:inline-block;font-weight:800;line-height:1}
+.grid.model .cell{cursor:default}
+.cell.ok{background:color-mix(in srgb,var(--ok) 55%,var(--card2));border-color:var(--ok)}
+.cell.miss{border:2px dashed var(--ok)}
+.textcard{line-height:1.65;font-size:1.05em}
+.textcard h3{margin-bottom:8px}
+.peek{margin-top:14px}
+.peek summary{cursor:pointer;color:var(--accent);padding:8px 0}
+.cell.memo{font-size:1.8em;font-weight:400}
+.rw{transition:color .2s}
+.rw.ok{color:var(--ok)}
+.rw.miss{color:var(--bad);text-decoration:underline dotted}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+/* ================= Helpers ================= */
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const sample=(a,n)=>shuffle(a.slice()).slice(0,n);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const norm=s=>String(s).toLowerCase().trim().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z]/g,'');
+const up=c=>c==='ß'?'ß':c.toUpperCase();
+function dstr(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d}
+function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/864e5)}
+function relDay(ds){const n=daysBetween(ds,dstr());return n===0?'heute':n===1?'gestern':n===2?'vorgestern':new Date(ds).toLocaleDateString('de-DE',{day:'numeric',month:'short'})}
+const fmtMin=m=>m<1?'unter 1 Min':Math.round(m)+' Min';
+const mmss=ms=>{const s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function h(tag,props,...kids){const e=document.createElement(tag);for(const [k,v] of Object.entries(props||{})){if(v===false||v==null)continue;if(k==='class')e.className=v;else if(k==='style')e.style.cssText=v;else if(k==='html')e.innerHTML=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v===true?'':v)}for(const c of kids.flat(Infinity)){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(c))}return e}
+function flash(el,cls,ms=420){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms)}
+function toast(t){const e=h('div',{class:'toast'},t);document.body.append(e);setTimeout(()=>e.remove(),2200)}
+const app=document.getElementById('app');
+function screen(...nodes){app.dataset.screen='';app.innerHTML='';app.append(...nodes.flat(Infinity).filter(x=>x!=null&&x!==false));window.scrollTo(0,0)}
+const fine=matchMedia('(pointer:fine)').matches;
+
+/* ================= Speicher ================= */
+const KEY='kopfzeit_v1';
+const DEF=()=>({checkins:[],sessions:[],levels:{},hist:{},settings:{accent:'#8fb8ff',big:false,maxMin:30,calm:false,tasks:true,useLearned:true,textSrc:'wiki',domains:{conc:true,mem:true,lang:true,plan:true,space:true,math:true,speak:true}}});
+function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}const d=DEF();if(!s||typeof s!=='object')return d;return{...d,...s,settings:{...d.settings,...(s.settings||{}),domains:{...d.settings.domains,...((s.settings||{}).domains||{})}}}}
+let S=load();
+function save(){S.checkins=S.checkins.slice(-400);S.sessions=S.sessions.slice(-600);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof schedulePush==='function')schedulePush()}
+/* ================= Sync (Firebase) ================= */
+const FBKEY='kopfzeit_fb';
+const DEVID=(()=>{try{let d=localStorage.getItem('kopfzeit_dev');if(!d){d=Math.random().toString(36).slice(2);localStorage.setItem('kopfzeit_dev',d)}return d}catch(e){return 'x'+Math.random()}})();
+let FB=null,fbUser=null,fbState='aus',fbLast=0,pushT=null,pendingRemote=null,applyingRemote=false,fbUnsub=null;
+function fbConf(){try{return JSON.parse(localStorage.getItem(FBKEY))}catch(e){return null}}
+function parseConf(t){let o={};try{o=JSON.parse(t)}catch(e){t.replace(/(\w+)\s*:\s*["']([^"']+)["']/g,(_,k,v)=>{o[k]=v})}return o&&o.apiKey&&o.projectId?o:null}
+function fbErr(e){const c=(e&&e.code)||'';return {'auth/invalid-credential':'E-Mail oder Passwort falsch.','auth/wrong-password':'E-Mail oder Passwort falsch.','auth/user-not-found':'Kein Konto mit dieser E-Mail – erst „Konto anlegen“.','auth/email-already-in-use':'Das Konto gibt es schon – bitte „Anmelden“.','auth/weak-password':'Passwort zu kurz (mindestens 6 Zeichen).','auth/invalid-email':'Die E-Mail-Adresse stimmt nicht.','auth/operation-not-allowed':'In Firebase ist „E-Mail/Passwort“ noch nicht aktiviert.','auth/network-request-failed':'Keine Internetverbindung.','permission-denied':'Firestore-Regeln fehlen oder sind falsch.'}[c]||('Fehler: '+(c||e))}
+function fbBadge(){const el=document.getElementById('fbb');if(!el)return;el.textContent=fbUser?(fbState==='synchron'?'☁︎ synchronisiert':'☁︎ '+fbState):''}
+function syncPayload(){const {textCache,...rest}=S;return JSON.stringify(rest)}
+function mergeState(a,b){const m=JSON.parse(JSON.stringify(a));
+ const bs=new Map();for(const s of [...(a.sessions||[]),...(b.sessions||[])]){const k=s.id+'|'+s.type,o=bs.get(k);if(!o){bs.set(k,{...s});continue}
+  const sBig=(s.items||[]).length>(o.items||[]).length||((s.items||[]).length===(o.items||[]).length&&(s.minutes||0)>(o.minutes||0));const w=sBig?{...o,...s}:{...s,...o};for(const f of ['pem','after','fatigueAt'])if(w[f]==null)w[f]=o[f]!=null?o[f]:s[f];bs.set(k,w)}
+ m.sessions=[...bs.values()].sort((x,y)=>x.id-y.id).slice(-600);
+ const ci=new Map();for(const c of [...(a.checkins||[]),...(b.checkins||[])])ci.set(c.ts+'|'+c.date,c);m.checkins=[...ci.values()].sort((x,y)=>x.ts-y.ts).slice(-400);
+ m.hist={};for(const id of new Set([...Object.keys(a.hist||{}),...Object.keys(b.hist||{})])){const hm=new Map();for(const e of [...((a.hist||{})[id]||[]),...((b.hist||{})[id]||[])])hm.set(e.ts,e);m.hist[id]=[...hm.values()].sort((x,y)=>x.ts-y.ts).slice(-60)}
+ m.levels={...(a.levels||{})};m.levelsTs={...(a.levelsTs||{})};for(const [id,v] of Object.entries(b.levels||{})){const tb=(b.levelsTs||{})[id]||0,ta=m.levelsTs[id]||0;if(tb>ta||(m.levels[id]==null)){m.levels[id]=v;m.levelsTs[id]=tb}}
+ if((b.settingsTs||0)>(a.settingsTs||0)){m.settings=b.settings;m.settingsTs=b.settingsTs}
+ m.seen=[...new Set([...(a.seen||[]),...(b.seen||[])])].slice(-260);m.textCache=a.textCache||[];return m}
+function busy(){return !!run||!!(curCtx&&curCtx.alive())}
+function applyRemote(remote){const rj=JSON.stringify(remote);applyingRemote=true;S=mergeState(S,remote);const d=DEF();S.settings={...d.settings,...S.settings,domains:{...d.settings.domains,...(S.settings.domains||{})}};save();applyingRemote=false;applySettings();
+ if(syncPayload()!==rj)fbPush();if(app.dataset.screen==='home')home()}
+async function fbPush(){if(!FB||!fbUser)return;try{await FB.fs.setDoc(FB.fs.doc(FB.db,'kopfzeit',fbUser.uid),{data:syncPayload(),dev:DEVID,upd:Date.now()});fbState='synchron';fbLast=Date.now()}catch(e){fbState=e&&e.code==='permission-denied'?fbErr(e):'offline – wird nachgeholt'}fbBadge()}
+function schedulePush(){if(!fbUser||applyingRemote)return;clearTimeout(pushT);pushT=setTimeout(fbPush,1500)}
+function fbListen(){if(fbUnsub)fbUnsub();fbState='verbinde …';fbBadge();
+ fbUnsub=FB.fs.onSnapshot(FB.fs.doc(FB.db,'kopfzeit',fbUser.uid),snap=>{if(snap.metadata&&snap.metadata.hasPendingWrites)return;const d=snap.exists()?snap.data():null;
+  if(!d||!d.data){fbPush();return}if(d.dev!==DEVID){let r=null;try{r=JSON.parse(d.data)}catch(e){}if(r){if(busy())pendingRemote=r;else applyRemote(r)}}
+  fbState='synchron';fbLast=Date.now();fbBadge()},e=>{fbState=fbErr(e);fbBadge()})}
+async function fbInit(){const c=fbConf();if(!c||FB)return;fbState='lädt …';try{const B='https://www.gstatic.com/firebasejs/10.12.2/';
+ const [a,au,fs]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
+ const fapp=a.initializeApp(c,'kopfzeit');FB={au,fs,auth:au.getAuth(fapp),db:fs.getFirestore(fapp)};
+ au.onAuthStateChanged(FB.auth,u=>{fbUser=u;if(u)fbListen();else{if(fbUnsub){fbUnsub();fbUnsub=null}fbState='abgemeldet'}fbBadge()})}catch(e){fbState='Firebase konnte nicht geladen werden';fbBadge()}}
+window.addEventListener('online',()=>{if(fbUser)fbPush()});
+function syncCard(){const box=h('div',{class:'card'},h('h3',{},'Synchronisierung'));const c=fbConf();
+ if(!c){const ta=h('textarea',{class:'inp',rows:6,placeholder:'const firebaseConfig = {\n  apiKey: "…",\n  authDomain: "…",\n  projectId: "…",\n  …\n};',style:'font-size:.78em;font-family:ui-monospace,Menlo,monospace'});
+  box.append(h('p',{class:'small muted'},'Damit deine Daten auf iPhone, iPad und Mac gleich sind. Füge hier einmal pro Gerät die Firebase-Konfiguration ein (Firebase-Konsole → Projekteinstellungen → Deine Apps → Web-App).'),ta,
+   h('button',{class:'btn primary',style:'margin-top:8px',onclick:()=>{const o=parseConf(ta.value);if(!o){toast('Konfiguration nicht erkannt');return}localStorage.setItem(FBKEY,JSON.stringify(o));toast('Gespeichert');fbInit().then(()=>setTimeout(settings,400))}},'Konfiguration speichern'));return box}
+ if(!FB){box.append(h('p',{class:'small muted',style:'margin:0'},'Firebase: '+fbState));return box}
+ if(!fbUser){const em=h('input',{class:'inp',type:'email',placeholder:'E-Mail',autocomplete:'username',autocapitalize:'off'}),pw=h('input',{class:'inp',type:'password',placeholder:'Passwort (mind. 6 Zeichen)',autocomplete:'current-password',style:'margin-top:8px'}),msg=h('p',{class:'small',style:'min-height:1.3em'});
+  const go=async create=>{msg.textContent='…';try{if(create)await FB.au.createUserWithEmailAndPassword(FB.auth,em.value.trim(),pw.value);else await FB.au.signInWithEmailAndPassword(FB.auth,em.value.trim(),pw.value);msg.textContent='Angemeldet.';setTimeout(settings,700)}catch(e){msg.textContent=fbErr(e)}};
+  box.append(h('p',{class:'small muted'},'Auf dem ersten Gerät „Konto anlegen“, auf allen anderen mit denselben Daten „Anmelden“. Was schon auf dem Gerät ist, wird zusammengeführt – nichts geht verloren.'),em,pw,msg,h('div',{class:'row'},h('button',{class:'btn primary',onclick:()=>go(false)},'Anmelden'),h('button',{class:'btn',onclick:()=>go(true)},'Konto anlegen')))}
+ else box.append(h('p',{style:'margin:0'},`Angemeldet als ${fbUser.email}`),h('p',{class:'small muted'},`Status: ${fbState}`+(fbLast?` · zuletzt ${new Date(fbLast).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr`:'')),
+  h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{fbPush().then(()=>{toast('Synchronisiert');settings()})}},'Jetzt synchronisieren'),h('button',{class:'btn ghost',onclick:()=>FB.au.signOut(FB.auth).then(()=>setTimeout(settings,200))},'Abmelden')));
+ let armed=false;const rm=h('button',{class:'btn ghost small',style:'margin-top:8px'},'Firebase-Konfiguration entfernen');
+ rm.onclick=()=>{if(!armed){armed=true;rm.textContent='Sicher? Nochmal tippen';setTimeout(()=>{armed=false;rm.textContent='Firebase-Konfiguration entfernen'},3000);return}try{localStorage.removeItem(FBKEY)}catch(e){}location.reload()};
+ box.append(rm);return box}
+
+function applySettings(){document.documentElement.style.setProperty('--accent',S.settings.accent);document.body.classList.toggle('big',!!S.settings.big)}
+
+/* ================= Inhalte ================= */
+const DOM={conc:{n:'Konzentration',c:'#8fb8ff'},mem:{n:'Gedächtnis',c:'#c3a6ff'},lang:{n:'Sprache',c:'#7fd1a8'},plan:{n:'Tempo & Planen',c:'#f2c27b'},space:{n:'Wahrnehmung & Raum',c:'#7dd3e0'},math:{n:'Zahlen & Rechnen',c:'#f29e8e'},speak:{n:'Sprechen',c:'#f5a3c7'}};
+const ACCENTS=['#8fb8ff','#7fd1a8','#c3a6ff','#f2c27b','#f29e8e','#7dd3e0'];
+
+const WORDS=[
+['Bett','Darin schläft man nachts',1],['Gabel','Besteckteil mit Zinken',1],['Schlüssel','Damit schließt man die Haustür auf',1],['Brille','Hilft beim Sehen und sitzt auf der Nase',1],['Kissen','Darauf legt man nachts den Kopf',1],['Regenschirm','Schützt beim Spazierengehen vor Regen',1],['Zahnbürste','Damit putzt man sich die Zähne',1],['Kühlschrank','Hält Lebensmittel kalt',1],['Stuhl','Darauf sitzt man am Esstisch',1],['Teller','Darauf liegt das Essen',1],['Löffel','Damit isst man Suppe',1],['Fenster','Glas in der Wand, durch das man nach draußen schaut',1],['Tasse','Daraus trinkt man Kaffee',1],['Lampe','Macht im Zimmer Licht',1],['Briefkasten','Dort landet die Post',1],['Handtuch','Damit trocknet man sich nach dem Duschen ab',1],['Leine','Daran führt man den Hund aus',1],['Kerze','Hat einen Docht und wird angezündet',1],['Spiegel','Darin sieht man sich selbst',1],['Garten','Grünfläche am Haus mit Beeten und Rasen',1],
+['Kalender','Zeigt Tage, Wochen und Monate',2],['Thermometer','Misst die Temperatur',2],['Gießkanne','Damit gießt man die Blumen',2],['Treppe','Stufen, um ins obere Stockwerk zu kommen',2],['Wecker','Klingelt morgens zum Aufstehen',2],['Apotheke','Dort bekommt man Medikamente',2],['Bibliothek','Dort leiht man Bücher aus',2],['Leuchtturm','Steht an der Küste und warnt Schiffe',2],['Briefmarke','Klebt man oben rechts auf einen Brief',2],['Staubsauger','Saugt Krümel vom Boden',2],['Fernbedienung','Damit schaltet man das Fernsehprogramm um',2],['Hängematte','Netz zum Liegen zwischen zwei Bäumen',2],['Schubkarre','Karre mit einem Rad für die Gartenarbeit',2],['Waschmaschine','Wäscht die Kleidung',2],['Kompass','Zeigt nach Norden',2],['Rezept','Anleitung zum Kochen oder Backen',2],['Quittung','Beleg über eine Zahlung',2],['Wegweiser','Schild, das die Richtung zeigt',2],['Gewitter','Unwetter mit Blitz und Donner',2],['Ebbe','Wenn sich das Meer zurückzieht',2],['Wohnwagen','Fahrbares Zuhause für den Campingurlaub',2],['Zelt','Unterkunft aus Stoff auf dem Campingplatz',2],
+['Geduld','Fähigkeit, ruhig abzuwarten',3],['Erinnerung','Etwas Vergangenes, das man im Kopf behält',3],['Nachbar','Jemand, der nebenan wohnt',3],['Ausrede','Vorgeschobener Grund, um sich herauszureden',3],['Umweg','Weg, der länger ist als nötig',3],['Vorrat','Was man für später aufbewahrt',3],['Gewohnheit','Etwas, das man immer wieder automatisch tut',3],['Kompromiss','Einigung, bei der beide Seiten nachgeben',3],['Sprichwort','Bekannter kurzer Satz mit einer Lebensweisheit',3],['Gänsehaut','Entsteht, wenn man friert oder ergriffen ist',3],['Schluckauf','Ständiges, unfreiwilliges Hicksen',3],['Lampenfieber','Aufregung vor einem Auftritt',3],['Fernweh','Sehnsucht nach fernen Orten',3],['Vorfreude','Freude auf etwas, das noch kommt',3],['Feierabend','Ende des Arbeitstages',3],['Zeitlupe','Bewegung, die stark verlangsamt gezeigt wird',3],['Eselsbrücke','Kleine Merkhilfe',3],['Ohrwurm','Melodie, die einem nicht mehr aus dem Kopf geht',3],['Stammtisch','Fester Tisch für regelmäßige Gäste in der Kneipe',3],['Kopfsteinpflaster','Holpriger Straßenbelag aus Steinen',3],['Gedächtnis','Fähigkeit, sich Dinge zu merken',3],['Schnäppchen','Ware, die man besonders günstig bekommt',3]
+];
+const CATS={
+'Obst':['Apfel','Birne','Kirsche','Pflaume','Banane','Erdbeere','Mango','Traube'],
+'Gemüse':['Karotte','Gurke','Brokkoli','Paprika','Zwiebel','Spinat','Lauch','Zucchini'],
+'Werkzeug':['Hammer','Säge','Zange','Schraubenzieher','Bohrer','Feile','Meißel','Wasserwaage'],
+'Möbel':['Tisch','Stuhl','Schrank','Sofa','Regal','Kommode','Hocker','Sessel'],
+'Haustiere':['Hund','Katze','Hamster','Wellensittich','Kaninchen','Meerschweinchen'],
+'Wildtiere':['Fuchs','Reh','Wildschwein','Dachs','Hirsch','Wolf','Igel'],
+'Vögel':['Amsel','Meise','Spatz','Storch','Möwe','Rabe','Specht','Eule'],
+'Fische':['Hering','Lachs','Forelle','Karpfen','Hecht','Makrele','Zander'],
+'Fahrzeuge':['Auto','Bus','Fahrrad','Zug','Motorrad','Lastwagen','Roller','Straßenbahn'],
+'Instrumente':['Gitarre','Klavier','Geige','Trompete','Flöte','Schlagzeug','Harfe','Cello'],
+'Kleidung':['Hose','Jacke','Pullover','Hemd','Mantel','Rock','Bluse','Weste'],
+'Berufe':['Bäcker','Arzt','Lehrer','Gärtner','Maler','Koch','Pilot','Friseur'],
+'Farben':['Rot','Blau','Grün','Gelb','Lila','Braun','Türkis','Rosa'],
+'Körperteile':['Arm','Bein','Knie','Schulter','Ellbogen','Hand','Fuß','Nacken'],
+'Wetter':['Regen','Schnee','Hagel','Nebel','Sturm','Gewitter','Frost','Nieselregen'],
+'Getränke':['Wasser','Saft','Tee','Kaffee','Milch','Limonade','Kakao'],
+'Blumen':['Rose','Tulpe','Nelke','Lilie','Sonnenblume','Gänseblümchen','Veilchen','Narzisse'],
+'Bäume':['Eiche','Buche','Birke','Tanne','Linde','Ahorn','Kastanie','Fichte']
+};
+const CLOSE=[['Obst','Gemüse'],['Haustiere','Wildtiere'],['Blumen','Bäume'],['Vögel','Fische'],['Werkzeug','Instrumente'],['Kleidung','Möbel'],['Küche','Werkzeug'],['Insekten','Vögel'],['Süßigkeiten','Obst'],['Sportarten','Spiele'],['Gebäude','Möbel'],['Gewürze','Gemüse'],['Gefühle','Wetter']];
+/* --- Erweiterung Wortschatz --- */
+WORDS.push(
+['Messer','Damit schneidet man Brot oder Fleisch',1],['Topf','Darin kocht man Nudeln oder Suppe',1],['Pfanne','Darin brät man Spiegeleier',1],['Kamm','Damit bringt man die Haare in Ordnung',1],['Seife','Damit wäscht man sich die Hände',1],['Dusche','Dort wäscht man sich im Stehen',1],['Badewanne','Darin liegt man im warmen Wasser',1],['Sofa','Gepolstertes Möbel im Wohnzimmer, auf dem mehrere sitzen',1],['Teppich','Liegt weich auf dem Fußboden',1],['Vorhang','Hängt vor dem Fenster und hält Licht ab',1],['Tür','Dadurch geht man in einen anderen Raum',1],['Dach','Oberer Abschluss eines Hauses, schützt vor Regen',1],['Zaun','Grenzt das Grundstück ein',1],['Fahrrad','Hat zwei Räder und Pedale',1],['Ampel','Zeigt Rot, Gelb und Grün im Straßenverkehr',1],['Brücke','Führt über einen Fluss',1],['Geldbeutel','Darin stecken Münzen und Scheine',1],['Handy','Kleines Telefon für unterwegs',1],['Fernseher','Darauf schaut man Filme und Nachrichten',1],['Zeitung','Wird täglich gedruckt und enthält Nachrichten',1],['Buch','Hat viele Seiten und wird gelesen',1],['Stift','Damit schreibt man auf Papier',1],['Schere','Damit schneidet man Papier',1],['Hammer','Damit schlägt man Nägel in die Wand',1],['Eimer','Behälter mit Henkel zum Wassertragen',1],['Besen','Damit fegt man den Boden',1],['Mülleimer','Dort kommt der Abfall hinein',1],['Jacke','Zieht man draußen über, wenn es kühl ist',1],['Mütze','Wärmt im Winter den Kopf',1],['Handschuh','Wärmt die Finger',1],['Socke','Zieht man vor dem Schuh über den Fuß',1],['Gürtel','Hält die Hose oben',1],['Uhr','Zeigt die Zeit an',1],['Ring','Schmuckstück am Finger, etwa nach der Hochzeit',1],['Hund','Bellt und wird gern ausgeführt',1],['Katze','Schnurrt und fängt Mäuse',1],['Kuh','Gibt Milch und steht auf der Weide',1],['Pferd','Darauf kann man reiten',1],['Biene','Summt und macht Honig',1],['Banane','Gelbes, krummes Obst',1],['Kartoffel','Knolle aus der Erde, wird gekocht oder als Pommes gegessen',1],['Butter','Streicht man aufs Brot',1],['Honig','Süß und klebrig, von Bienen gemacht',1],['Sonne','Scheint tagsüber am Himmel',1],['Mond','Leuchtet nachts am Himmel',1],['Schnee','Weiß, kalt und fällt im Winter',1],['Baum','Hat Stamm, Äste und Blätter',1],['Auto','Fahrzeug mit vier Rädern und Motor',1],['Bus','Großes Fahrzeug für viele Fahrgäste mit Haltestellen',1],['Kaffee','Heißes, dunkles Getränk am Morgen',1],
+['Waage','Zeigt an, wie schwer etwas ist',2],['Taschenlampe','Kleines Licht zum Mitnehmen',2],['Steckdose','Dort steckt man den Stecker hinein',2],['Ladekabel','Verbindet das Handy mit Strom',2],['Bügeleisen','Macht Falten aus der Kleidung',2],['Wäscheklammer','Hält die Wäsche auf der Leine',2],['Kleiderbügel','Darauf hängt man Hemden in den Schrank',2],['Fußmatte','Liegt vor der Haustür zum Schuheabtreten',2],['Klingel','Drückt man, wenn man vor der Tür steht',2],['Rasenmäher','Schneidet das Gras kurz',2],['Gartenschlauch','Langer Schlauch zum Gießen',2],['Vogelhaus','Futterstelle für Vögel im Winter',2],['Gartenzwerg','Kleine Figur mit roter Mütze im Beet',2],['Campingplatz','Ort, an dem Zelte und Wohnwagen stehen',2],['Hafen','Dort legen Schiffe an',2],['Bahnhof','Dort fahren Züge ab',2],['Flughafen','Dort starten und landen Flugzeuge',2],['Tankstelle','Dort füllt man Benzin nach',2],['Krankenhaus','Dort werden Kranke stationär behandelt',2],['Rathaus','Sitz der Gemeindeverwaltung',2],['Zahnarzt','Behandelt Löcher in den Zähnen',2],['Briefträger','Bringt die Post',2],['Schornsteinfeger','Kehrt den Kamin und gilt als Glücksbringer',2],['Feuerwehr','Löscht Brände',2],['Kran','Hebt auf Baustellen schwere Lasten',2],['Windrad','Erzeugt Strom aus Wind',2],['Deich','Wall, der das Land vor dem Meer schützt',2],['Moor','Nasse, weiche Landschaft mit Torf',2],['Regenbogen','Bunter Bogen am Himmel nach dem Regen',2],['Nebel','Trübe, feuchte Luft – man sieht kaum etwas',2],['Igel','Kleines Tier mit Stacheln',2],['Eichhörnchen','Rotbraunes Tier mit buschigem Schwanz, sammelt Nüsse',2],['Schnecke','Trägt ihr Haus auf dem Rücken',2],['Marmelade','Süßer Brotaufstrich aus Früchten',2],['Pfannkuchen','Flacher Teig aus der Pfanne',2],['Lebkuchen','Würziges Gebäck zur Weihnachtszeit',2],['Puzzle','Viele Teile, die zusammen ein Bild ergeben',2],['Würfel','Hat sechs Seiten mit Punkten',2],['Kreuzworträtsel','Rätsel mit waagerechten und senkrechten Kästchen',2],['Fotoalbum','Darin bewahrt man Bilder zur Erinnerung auf',2],['Schlafanzug','Kleidung für die Nacht',2],['Pflaster','Klebt man auf eine kleine Wunde',2],['Wärmflasche','Mit heißem Wasser gefüllt, wärmt im Bett',2],['Einkaufswagen','Schiebt man durch den Supermarkt',2],['Navigationsgerät','Zeigt im Auto den Weg',2],
+['Heimweh','Sehnsucht nach Zuhause',3],['Eifersucht','Angst, jemanden an einen anderen zu verlieren',3],['Neugier','Lust, Neues zu erfahren',3],['Langeweile','Gefühl, wenn nichts los ist',3],['Vertrauen','Gefühl, sich auf jemanden verlassen zu können',3],['Mut','Fähigkeit, trotz Angst zu handeln',3],['Dankbarkeit','Gefühl, wenn einem Gutes getan wurde',3],['Rücksicht','Achten auf die Bedürfnisse anderer',3],['Verspätung','Wenn jemand oder etwas zu spät kommt',3],['Vorsatz','Etwas, das man sich fest vornimmt',3],['Zufall','Etwas, das ungeplant passiert',3],['Gerücht','Unbestätigte Nachricht, die herumerzählt wird',3],['Abschied','Moment, in dem man sich trennt',3],['Wiedersehen','Wenn man sich nach langer Zeit wieder trifft',3],['Jubiläum','Jahrestag eines besonderen Ereignisses',3],['Wochenende','Samstag und Sonntag',3],['Sonnenaufgang','Wenn es morgens hell wird',3],['Dämmerung','Übergang zwischen Tag und Nacht',3],['Bauchgefühl','Entscheidung aus dem Gefühl heraus',3],['Kopfkino','Bilder, die man sich im Kopf ausmalt',3],['Fingerspitzengefühl','Feines Gespür im Umgang mit anderen',3],['Augenblick','Ein sehr kurzer Moment',3],['Leidenschaft','Starke Begeisterung für etwas',3],['Gelassenheit','Ruhe auch in schwierigen Lagen',3],['Gastfreundschaft','Herzlicher Umgang mit Besuch',3],['Missverständnis','Wenn jemand etwas falsch versteht',3],['Ausdauer','Fähigkeit, lange durchzuhalten',3],['Wortschatz','Alle Wörter, die man kennt',3],['Ehrlichkeit','Wenn man die Wahrheit sagt',3],['Hilfsbereitschaft','Gern anderen helfen wollen',3],['Schadenfreude','Freude über das Missgeschick anderer',3],['Vorurteil','Meinung über jemanden, ohne ihn zu kennen',3]
+);
+Object.assign(CATS,{
+'Küche':['Topf','Pfanne','Schneebesen','Kelle','Sieb','Reibe','Nudelholz','Toaster'],
+'Gewürze':['Pfeffer','Zimt','Muskat','Oregano','Basilikum','Thymian','Kurkuma','Kümmel'],
+'Sportarten':['Fußball','Tennis','Schwimmen','Rudern','Radfahren','Handball','Golf','Reiten'],
+'Spiele':['Schach','Dame','Halma','Domino','Skat','Bingo','Puzzle','Memory'],
+'Süßigkeiten':['Schokolade','Gummibärchen','Lakritz','Bonbon','Lolli','Praline','Marzipan','Keks'],
+'Gebäude':['Kirche','Schule','Rathaus','Bahnhof','Turm','Burg','Scheune','Hochhaus'],
+'Gefühle':['Freude','Wut','Angst','Trauer','Stolz','Neid','Scham','Ekel'],
+'Insekten':['Biene','Wespe','Ameise','Käfer','Fliege','Mücke','Libelle','Hummel']
+});
+Object.assign(CATS,{
+'Länder':['Spanien','Italien','Frankreich','Polen','Dänemark','Schweden','Norwegen','Griechenland'],
+'Städte':['Berlin','Hamburg','München','Bremen','Köln','Hannover','Dresden','Leipzig'],
+'Badezimmer':['Zahnbürste','Handtuch','Seife','Shampoo','Föhn','Rasierer','Waschlappen','Duschgel'],
+'Elektrogeräte':['Fernseher','Radio','Staubsauger','Mixer','Wasserkocher','Bügeleisen','Laptop','Drucker'],
+'Meerestiere':['Wal','Delfin','Qualle','Krabbe','Seestern','Robbe','Hummer','Muschel'],
+'Schmuck':['Ring','Kette','Armband','Ohrring','Brosche','Anhänger','Diadem','Perle'],
+'Märchenfiguren':['Hexe','Zwerg','Prinzessin','Riese','Fee','Drache','König','Zauberer']
+});
+CATS['Küche']=['Topf','Pfanne','Schneebesen','Kelle','Sieb','Reibe','Nudelholz','Pfannenwender'];
+CLOSE.push(['Länder','Städte'],['Badezimmer','Küche'],['Schmuck','Kleidung'],['Meerestiere','Vögel']);
+const ANT={
+a:[['groß','klein',1],['hell','dunkel',1],['warm','kalt',1],['schnell','langsam',1],['laut','leise',1],['jung','alt',1],['voll','leer',1],['nass','trocken',1],['schwer','leicht',1],['hart','weich',1],['dick','dünn',1],['lang','kurz',1],['früh','spät',1],['oben','unten',1],['reich','arm',1],['sauber','schmutzig',1],['billig','teuer',1],['gesund','krank',1],['richtig','falsch',1],['hoch','tief',1],
+ ['mutig','ängstlich',2],['fleißig','faul',2],['innen','außen',2],['glatt','rau',2],['spitz','stumpf',2],['eng','weit',2],['nah','fern',2],['flüssig','fest',2],['selten','häufig',2],['schwierig','einfach',2],['bekannt','fremd',2],['ehrlich','verlogen',2],
+ ['sparsam','verschwenderisch',3],['vorsichtig','leichtsinnig',3],['freiwillig','gezwungen',3],['optimistisch','pessimistisch',3],['positiv','negativ',3],['maximal','minimal',3],['großzügig','geizig',3],['bescheiden','eingebildet',3]],
+n:[['Tag','Nacht',1],['Anfang','Ende',1],['Frage','Antwort',1],['Sommer','Winter',1],['Freund','Feind',1],['Krieg','Frieden',1],
+ ['Ebbe','Flut',2],['Sieg','Niederlage',2],['Vorteil','Nachteil',2],['Lob','Tadel',2],['Eingang','Ausgang',2],['Abfahrt','Ankunft',2],['Gewinn','Verlust',2],['Ruhe','Lärm',2],['Stärke','Schwäche',2],['Liebe','Hass',2],
+ ['Ordnung','Chaos',3],['Mehrheit','Minderheit',3],['Vergangenheit','Zukunft',3],['Theorie','Praxis',3],['Ausnahme','Regel',3],['Angebot','Nachfrage',3],['Import','Export',3]],
+v:[['kaufen','verkaufen',1],['öffnen','schließen',1],['geben','nehmen',1],['lachen','weinen',1],['gewinnen','verlieren',1],['kommen','gehen',1],
+ ['erlauben','verbieten',2],['einschlafen','aufwachen',2],['vergessen','erinnern',2],['zunehmen','abnehmen',2],['ankommen','abfahren',2],['einatmen','ausatmen',2],['loben','tadeln',2],
+ ['zustimmen','ablehnen',3],['vermehren','verringern',3],['beschleunigen','bremsen',3],['befestigen','lösen',3]]
+};
+const BRIDGE=[['Tür','Garten','Klinke','Gartentür','Türklinke'],['Baum','Apfel','Krone','Apfelbaum','Baumkrone'],['Schuh','Hand','Karton','Handschuh','Schuhkarton'],['Blume','Sonne','Topf','Sonnenblume','Blumentopf'],['Brot','Butter','Zeit','Butterbrot','Brotzeit'],['Wasser','Mineral','Fall','Mineralwasser','Wasserfall'],['Haus','Kranken','Meister','Krankenhaus','Hausmeister'],['Zahn','Milch','Bürste','Milchzahn','Zahnbürste'],['Stuhl','Schaukel','Bein','Schaukelstuhl','Stuhlbein'],['Bahn','Eisen','Hof','Eisenbahn','Bahnhof'],['Post','Eil','Karte','Eilpost','Postkarte'],['Ball','Fuß','Spiel','Fußball','Ballspiel'],['Fenster','Schau','Bank','Schaufenster','Fensterbank'],['Licht','Kerze','Schalter','Kerzenlicht','Lichtschalter'],['Tag','Geburt','Buch','Geburtstag','Tagebuch'],['Feuer','Lager','Wehr','Lagerfeuer','Feuerwehr'],['Schnee','Pulver','Mann','Pulverschnee','Schneemann'],['Hund','Schäfer','Hütte','Schäferhund','Hundehütte'],['Kopf','Dick','Kissen','Dickkopf','Kopfkissen'],['Zeit','Mittag','Punkt','Mittagszeit','Zeitpunkt'],['Wolke','Regen','Kratzer','Regenwolke','Wolkenkratzer'],['Sonne','Abend','Brille','Abendsonne','Sonnenbrille'],['Wagen','Kinder','Heber','Kinderwagen','Wagenheber'],['Glas','Wein','Scheibe','Weinglas','Glasscheibe'],['Rad','Fahr','Weg','Fahrrad','Radweg'],['Platz','Spiel','Regen','Spielplatz','Platzregen'],['Kuchen','Apfel','Blech','Apfelkuchen','Kuchenblech'],['Hose','Bade','Tasche','Badehose','Hosentasche'],['Schrank','Kleider','Tür','Kleiderschrank','Schranktür'],['Bett','Kinder','Decke','Kinderbett','Bettdecke'],['Garten','Gemüse','Zwerg','Gemüsegarten','Gartenzwerg'],['Meer','Mittel','Blick','Mittelmeer','Meerblick'],['Kaffee','Filter','Tasse','Filterkaffee','Kaffeetasse'],['Tee','Kräuter','Kanne','Kräutertee','Teekanne'],['Brief','Liebe','Marke','Liebesbrief','Briefmarke'],['Papier','Zeitung','Korb','Zeitungspapier','Papierkorb'],['Uhr','Kuckuck','Zeiger','Kuckucksuhr','Uhrzeiger'],['Stadt','Haupt','Plan','Hauptstadt','Stadtplan'],['Weg','Feld','Weiser','Feldweg','Wegweiser'],['Mond','Voll','Schein','Vollmond','Mondschein'],['Stern','Abend','Schnuppe','Abendstern','Sternschnuppe'],['Herz','Löwe','Schlag','Löwenherz','Herzschlag'],['Schlüssel','Haus','Bund','Hausschlüssel','Schlüsselbund'],['Bild','Wand','Schirm','Wandbild','Bildschirm'],['Spiegel','Hand','Ei','Handspiegel','Spiegelei'],['Ohr','Hase','Ring','Hasenohr','Ohrring'],['Nase','Stups','Loch','Stupsnase','Nasenloch'],['Finger','Zeige','Nagel','Zeigefinger','Fingernagel'],['Fisch','Gold','Stäbchen','Goldfisch','Fischstäbchen'],['Boot','Ruder','Haus','Ruderboot','Bootshaus'],['Zug','Güter','Führer','Güterzug','Zugführer'],['Bus','Schule','Fahrer','Schulbus','Busfahrer'],['Arzt','Haus','Praxis','Hausarzt','Arztpraxis'],['Tasche','Hand','Lampe','Handtasche','Taschenlampe'],['Salat','Obst','Gurke','Obstsalat','Salatgurke'],['Suppe','Tomate','Kasper','Tomatensuppe','Suppenkasper'],['Eis','Vanille','Würfel','Vanilleeis','Eiswürfel'],['Honig','Wald','Glas','Waldhonig','Honigglas']];
+/* ===== Textverständnis: Quellen ===== */
+const WIKI=['Igel','Eichhörnchen','Westliche Honigbiene','Leuchtturm','Nordsee','Wattenmeer','Ems','Emsland','Haren (Ems)','Bremen','Bremer Stadtmusikanten','Helgoland','Borkum','Ostfriesland','Papenburg','Meyer Werft','Moor','Windenergie','Regenbogen','Gewitter','Mond','Polarlicht','Komet','Haushund','Hauskatze','Hauspferd','Hausrind','Weißstorch','Kranich','Amsel','Rotkehlchen','Seehund','Schweinswal','Tulpen','Sonnenblume','Kartoffel','Kulturapfel','Erdbeeren','Kaffee','Tee','Schokolade','Brezel','Pizza','Currywurst','Grünkohl','Labskaus','Fahrrad','Dampflokomotive','Glühlampe','Telefon','Fernsehen','Schach','Rudern','Olympische Spiele','Zirkus','Karneval','Weihnachtsbaum','Osterhase','Adventskalender','Brandenburger Tor','Kölner Dom','Schloss Neuschwanstein','Zugspitze','Rhein','Bodensee','Schwarzwald','Lüneburger Heide','Harz (Mittelgebirge)','Elbe','Titanic','Apollo 11','Johannes Gutenberg','Brüder Grimm','Hänsel und Gretel','Rotkäppchen','Ludwig van Beethoven','Albert Einstein','Marie Curie','Florence Nightingale','Rettungsdienst','Feuerwehr','Briefmarke','Camping','Wohnwagen','Kompostierung','Gartenzwerg','Bonsai','Origami','Puzzle','Lego','Teddybär','Zauberwürfel','Kaugummi','Gummibärchen','Speiseeis','Honig','Käse','Vulkan','Dinosaurier','Pinguine','Eisbär','Elefanten','Giraffen','Delfine','Schildkröten','Weinbergschnecke','Libellen','Marienkäfer','Schmetterlinge','Ameisen','Wald','Eichen','Birken','Rosskastanien','Fliegenpilz','Märchen','Dudelsack','Kuckucksuhr','Hanse','Wikinger','Römisches Reich','Pyramiden von Gizeh','Chinesische Mauer','Eiffelturm','Freiheitsstatue'];
+const LOCALRAW=[
+['Leuchttürme','Leuchttürme stehen an Küsten und auf Inseln. Sie zeigen Schiffen nachts den Weg. Jeder Leuchtturm hat eine eigene Kennung, also ein bestimmtes Muster aus Lichtblitzen. So wissen Seeleute genau, welchen Turm sie gerade sehen. Früher lebten Leuchtturmwärter direkt im Turm und kümmerten sich um das Licht. Heute arbeiten die meisten Leuchttürme automatisch.'],
+['Der Wochenmarkt','Jeden Donnerstag ist in der Stadt Wochenmarkt. Die Stände öffnen um acht Uhr morgens. Ein Bauer aus dem Nachbardorf verkauft Kartoffeln, Eier und frischen Spargel. Am Fischwagen gibt es Matjes und Krabben. Wer früh kommt, findet noch einen Parkplatz am Rathaus. Gegen Mittag bauen die Händler ihre Stände wieder ab.'],
+['Igel im Herbst','Igel sind nachtaktive Tiere. Im Herbst fressen sie sich ein Fettpolster an. Von November bis März halten sie Winterschlaf. Dafür suchen sie sich einen geschützten Platz, zum Beispiel unter einem Laubhaufen. Ihr Herz schlägt im Winterschlaf nur wenige Male pro Minute. Wer im Garten etwas Laub liegen lässt, hilft den Igeln.'],
+['Am See','Der Campingplatz liegt direkt an einem kleinen See. Es gibt dort Stellplätze für Zelte, Wohnwagen und Wohnmobile. Das Sanitärgebäude hat warme Duschen und eine Spülküche. Morgens kann man an der Rezeption frische Brötchen bestellen. Hunde sind erlaubt, müssen aber an der Leine bleiben. Die Mittagsruhe dauert von 13 bis 15 Uhr.'],
+['Mit dem Regionalzug','Der Regionalzug fährt um 9:14 Uhr von Gleis 2 ab. Er hält an vier Bahnhöfen, bevor er die Stadt erreicht. Die Fahrt dauert etwa eine Stunde und zwanzig Minuten. Fahrräder dürfen im vorderen Wagen mitgenommen werden. Wegen einer Baustelle fährt der Zug am Wochenende zehn Minuten später. Fahrkarten gibt es am Automaten oder in der App.'],
+['Das Wetter','Am Dienstag bleibt es meist trocken. Am Vormittag zeigt sich zeitweise die Sonne. Am Nachmittag ziehen von Westen Wolken auf. Die Temperaturen steigen auf bis zu 14 Grad. In der Nacht kann es an der Küste Nebel geben. Ab Mittwoch wird es wieder regnerisch und windig.'],
+['Neue Abfuhrtermine','Ab dem ersten März ändern sich die Abfuhrtermine. Die gelbe Tonne wird dann alle zwei Wochen am Montag geleert. Die Biotonne kommt weiterhin jeden Freitag. Bitte stellen Sie die Tonnen bis sieben Uhr morgens an die Straße. Fällt ein Termin auf einen Feiertag, verschiebt sich die Abholung um einen Tag. Einen neuen Abfuhrkalender finden Sie auf der Internetseite der Gemeinde.'],
+['Kraniche im Herbst','Im Herbst ziehen jedes Jahr Tausende Kraniche nach Süden. Viele von ihnen machen in Norddeutschland eine Rast. Tagsüber suchen sie auf abgeernteten Feldern nach Futter. Abends fliegen sie zu flachen Gewässern, wo sie sicher übernachten. Ihre trompetenartigen Rufe sind kilometerweit zu hören. Im Frühjahr kehren die Vögel in ihre Brutgebiete zurück.'],
+['Kartoffelsuppe','Für die Suppe schälst du zuerst ein Kilo Kartoffeln. Dann schneidest du sie zusammen mit einer Zwiebel und zwei Möhren in Würfel. Das Gemüse dünstest du kurz in etwas Butter an. Danach gießt du einen Liter Brühe dazu. Nach zwanzig Minuten Kochzeit pürierst du die Hälfte der Suppe. Zum Schluss würzt du mit Salz, Pfeffer und Majoran.'],
+['Hunde','Hunde stammen vom Wolf ab. Sie leben seit vielen tausend Jahren mit Menschen zusammen. Ihr Geruchssinn ist um ein Vielfaches besser als der des Menschen. Deshalb werden Hunde auch als Spürhunde eingesetzt. Ein erwachsener Hund schläft oft zwölf Stunden oder mehr am Tag. Regelmäßige Spaziergänge sind für ihn wichtig.'],
+['Die Ems','Die Ems ist ein Fluss im Nordwesten Deutschlands. Sie mündet bei Emden in die Nordsee. Auf ihrem Weg fließt sie durch das Emsland. Große Kreuzfahrtschiffe aus Papenburg werden über die Ems zum Meer gebracht. Dafür wird der Fluss mit einem Sperrwerk aufgestaut. Am Ufer verläuft der Emsradweg, der bei Radfahrern beliebt ist.'],
+['Sommerfest','Der Sportverein lädt am Samstag zum Sommerfest ein. Los geht es um 14 Uhr auf dem Sportplatz. Für Kinder gibt es eine Hüpfburg und Kinderschminken. Um 16 Uhr spielt die erste Mannschaft gegen eine Auswahl der Eltern. Kuchenspenden können bis Freitag im Vereinsheim abgegeben werden. Bei Regen findet das Fest in der Turnhalle statt.']
+];
+const ABBR=/^(z\.|u\.|d\.|v\.|o\.|s\.|bzw\.|ca\.|Nr\.|St\.|Dr\.|Prof\.|vgl\.|ggf\.|Jh\.|Chr\.|geb\.|gest\.|evtl\.|sog\.|Mio\.|Mrd\.|usw\.|etc\.|bzw\.|inkl\.|ehem\.|\d+\.|[A-ZÄÖÜ]\.)$/;
+function cleanText(t){for(let k=0;k<3;k++)t=t.replace(/\s*\([^()]*\)/g,'');return t.replace(/\[[^\]]*\]/g,'').replace(/\s+/g,' ').replace(/\s+([,.;:])/g,'$1').trim()}
+function sentences(t){const parts=cleanText(t).split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ„"0-9])/),out=[];
+ for(const p of parts){if(out.length){const lw=out[out.length-1].split(' ').pop();if(ABBR.test(lw)){out[out.length-1]+=' '+p;continue}}out.push(p)}
+ return out.map(s=>s.trim()).filter(s=>s.split(' ').length>=4)}
+const LOCALTEXTS=LOCALRAW.map(([title,t])=>({title,src:'Kopfzeit',url:null,s:sentences(t)}));
+async function fetchJSON(u,ms=7000){const c=new AbortController(),tm=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error('http');return await r.json()}finally{clearTimeout(tm)}}
+function cacheText(t){S.textCache=[...(S.textCache||[]).filter(x=>x.title!==t.title),{title:t.title,src:t.src,url:t.url,s:t.s.slice(0,8)}].slice(-30);save()}
+const htmlText=s=>new DOMParser().parseFromString(s,'text/html').body.textContent||'';
+async function loadText(){const src=S.settings.textSrc||'wiki';
+ try{
+  if(src==='wiki'||src==='wikirand')for(let a=0;a<4;a++){
+   const url=src==='wiki'?`https://de.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&format=json&origin=*&titles=${encodeURIComponent(freshPick(WIKI,1,x=>'w:'+x)[0])}`
+    :'https://de.wikipedia.org/w/api.php?action=query&generator=random&grnnamespace=0&prop=extracts&exintro=1&explaintext=1&format=json&origin=*';
+   const d=await fetchJSON(url),pg=d&&d.query&&d.query.pages?Object.values(d.query.pages)[0]:null;if(!pg||pg.missing!=null||!pg.extract)continue;
+   const ss=sentences(pg.extract);if(ss.length<3)continue;const t={title:pg.title,src:'Wikipedia',url:'https://de.wikipedia.org/wiki/'+encodeURIComponent(pg.title.replace(/ /g,'_')),s:ss};cacheText(t);return t}
+  if(src==='news'){const d=await fetchJSON('https://www.tagesschau.de/api2u/news?ressort=wissen');
+   for(const it of shuffle((d.news||[]).filter(x=>Array.isArray(x.content)))){const id='n:'+(it.sophoraId||it.title);if((S.seen||[]).includes(id))continue;
+    const ss=sentences(it.content.filter(c=>c.type==='text'&&c.value).map(c=>htmlText(c.value)).join(' '));if(ss.length<4)continue;
+    S.seen=[...(S.seen||[]),id].slice(-260);const t={title:it.title,src:'tagesschau',url:it.shareURL||it.detailsweb||null,s:ss};cacheText(t);return t}}
+ }catch(e){}
+ const pool=src==='local'?LOCALTEXTS:[...LOCALTEXTS,...(S.textCache||[])];return{...freshPick(pool,1,x=>'t:'+x.title)[0],offline:src!=='local'}}
+const STOPW=new Set('Der Die Das Den Dem Des Ein Eine Einen Einem Einer Eines Im In Am An Auf Aus Bei Mit Nach Seit Von Vor Zu Zum Zur Er Sie Es Wir Ihr Man Dieser Diese Dieses Als Wenn Weil Da Dort Heute Damit Auch Und Oder Aber So Jahr Jahre Jahren Jahrhundert Jahrhunderts Teil Zeit Art Uhr Dafür Danach Deshalb Dann Zudem Außerdem Später Früher Viele Einige Alle Sein Seine Ihre Ihren Wer Was Wie Wo Hier Jeder Jede Jedes Durch Über Unter Gegen Ohne Um Bis Neben Zwischen Nur Noch Schon Sehr Mehr Meist Meistens Etwa Rund Insgesamt'.split(' '));
+const wordsOf=s=>s.split(/\s+/).map(x=>x.replace(/^[„"'(]+|[.,;:!?"“'”)]+$/g,''));
+function nounsOf(s){return wordsOf(s).filter((c,i)=>i>0&&/^[A-ZÄÖÜ][a-zäöüß]{3,}$/.test(c)&&!STOPW.has(c))}
+const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const wRe=w=>new RegExp('(^|[^A-Za-zÄÖÜäöüß])'+reEsc(w)+'(?=[^A-Za-zÄÖÜäöüß]|$)');
+function alterSent(s,all){const m=s.match(/\b\d{1,4}\b/);
+ if(m&&Math.random()<.6){const n=+m[0];let nn=n>=1000?n+(rnd(2)?1:-1)*(5+rnd(40)):n<=12?n+(rnd(2)?1:-1)*(1+rnd(3)):n+(rnd(2)?1:-1)*Math.max(1,Math.round(n*(.2+Math.random()*.5)));if(nn<0)nn=n+2;if(nn!==n)return s.replace(new RegExp('\\b'+n+'\\b'),String(nn))}
+ const own=nounsOf(s),other=all.filter(x=>!s.includes(x));if(own.length&&other.length){const x=pick(own);return s.replace(wRe(x),'$1'+pick(other))}return null}
+function buildQs(ss,L){const cnt={};ss.forEach(s=>nounsOf(s).forEach(n=>cnt[n]=(cnt[n]||0)+1));const all=Object.keys(cnt);const G=L<=3?2:L<=6?3:4,R=L<=3?2:3,qs=[],used=new Set();
+ for(const i of shuffle([...ss.keys()])){if(qs.length>=G)break;const c=nounsOf(ss[i]).filter(n=>cnt[n]===1);if(!c.length)continue;const w=pick(c);used.add(i);
+  const pool=[...all.filter(x=>x!==w),...shuffle(Object.values(CATS).flat())].filter((x,k,a)=>a.indexOf(x)===k&&x!==w);qs.push({k:'gap',s:ss[i],w,opts:shuffle([w,...pool.slice(0,L<=4?2:3)])})}
+ let tf=0;for(const i of shuffle([...ss.keys()].filter(i=>!used.has(i)).concat([...used]))){if(tf>=R)break;if(ss[i].length>220)continue;const t=Math.random()<.5;const alt=t?null:alterSent(ss[i],all);qs.push({k:'tf',orig:ss[i],shown:alt||ss[i],truth:!alt});tf++}
+ shuffle(qs);if(L>=6&&ss.length>=4){const st=rnd(ss.length-3);const part=ss.slice(st,st+4);if(part.every(s=>s.length<=200))qs.push({k:'ord',s:part})}return qs}
+
+/* ===== Sprechen: Helfer ===== */
+const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
+const normW=s=>String(s).toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z0-9]/g,'');
+async function openMic(){const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+ const AC=window.AudioContext||window.webkitAudioContext,ac=new AC();try{await ac.resume()}catch(e){}const an=ac.createAnalyser();an.fftSize=2048;ac.createMediaStreamSource(st).connect(an);const buf=new Float32Array(an.fftSize);
+ return{rms(){an.getFloatTimeDomainData(buf);let s=0;for(let i=0;i<buf.length;i++)s+=buf[i]*buf[i];return Math.sqrt(s/buf.length)},close(){st.getTracks().forEach(t=>t.stop());try{ac.close()}catch(e){}}}}
+function makeRec(onText,onErr){if(!SRC)return null;let on=false,fin='',r=null;
+ const start=()=>{r=new SRC();r.lang='de-DE';r.continuous=true;r.interimResults=true;
+  r.onresult=e=>{let im='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=' '+t;else im+=' '+t}onText((fin+' '+im).trim())};
+  r.onerror=e=>{if(/not-allowed|service-not-allowed|audio-capture/.test(e.error)){on=false;onErr&&onErr(e.error)}};
+  r.onend=()=>{if(on)setTimeout(()=>{if(on)try{start()}catch(e){}},150)};try{r.start()}catch(e){}};
+ return{begin(){on=true;fin='';start()},end(){on=false;try{r&&r.stop()}catch(e){}},reset(){fin=''}}}
+function matchSeq(target,heardText){const hd=heardText.split(/\s+/).map(normW).filter(Boolean),out=[];let j=0;
+ for(const t of target){const n=normW(t);let k=-1;for(let q=j;q<Math.min(hd.length,j+5);q++)if(hd[q]===n||(n.length>4&&hd[q].length>4&&(hd[q].startsWith(n.slice(0,-1))||n.startsWith(hd[q].slice(0,-1))))){k=q;break}
+  if(k>=0){out.push(true);j=k+1}else out.push(false)}return out}
+const HARDW=['Streichholzschachtel','Strumpfhose','Pflaumenkompott','Zwetschgenkuchen','Schornsteinfeger','Kopfsteinpflaster','Postkutsche','Brautkleid','Blaukraut','Pfefferstreuer','Quarkspeise','Krankenschwester','Physiotherapie','Ergotherapie','Hubschrauber','Strickjacke','Kraftfahrzeug','Glückspilz','Fledermaus','Rhabarberschorle','Gewürzgurke','Schlüsselbund','Sprungschanze','Spritztour','Kopfschmerztablette','Schwarzwälder Kirschtorte','Fischers Fritz','Zwischenstopp','Pfannkuchenteig','Brennnesseltee','Abschleppseil','Herbstspaziergang','Sauerkrautsaft','Grützwurst','Schwiegermutter'];
+const fmtS=x=>x.toFixed(1).replace('.',',');
+
+/* Raum-Helfer */
+const pKey=c=>c[0]+','+c[1];
+function polyo(n){const cs=[[0,0]],set=new Set(['0,0']);while(cs.length<n){const [x,y]=pick(cs),[dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]),c=[x+dx,y+dy];if(!set.has(pKey(c))){set.add(pKey(c));cs.push(c)}}return cs}
+const normP=cs=>{const mx=Math.min(...cs.map(c=>c[0])),my=Math.min(...cs.map(c=>c[1]));return cs.map(([x,y])=>[x-mx,y-my]).sort((a,b)=>a[0]-b[0]||a[1]-b[1])};
+const keyP=cs=>normP(cs).map(pKey).join(';');
+const rotP=cs=>cs.map(([x,y])=>[-y,x]),mirP=cs=>cs.map(([x,y])=>[-x,y]);
+const rotN=(cs,k)=>{for(let i=0;i<k;i++)cs=rotP(cs);return cs};
+function chiral(cs){const m=keyP(mirP(cs));for(let k=0;k<4;k++)if(keyP(rotN(cs,k))===m)return false;return true}
+function shapeSVG(cs,col,px){const n=normP(cs),w=Math.max(...n.map(c=>c[0]))+1,hh=Math.max(...n.map(c=>c[1]))+1,S=Math.max(w,hh),u=100/S,ox=(S-w)*u/2,oy=(S-hh)*u/2;
+ return `<svg viewBox="-4 -4 108 108" width="${px}" height="${px}" aria-hidden="true">${n.map(([x,y])=>`<rect x="${(ox+x*u+1.5).toFixed(1)}" y="${(oy+y*u+1.5).toFixed(1)}" width="${(u-3).toFixed(1)}" height="${(u-3).toFixed(1)}" rx="3" fill="${col}"/>`).join('')}</svg>`}
+/* ===== Helfer v5 ===== */
+const rr=(a,b)=>a+rnd(b-a+1);
+const eur=c=>(c/100).toFixed(2).replace('.',',')+' €';
+function canonRot(cs){let best=null;for(let k=0;k<4;k++){const x=keyP(rotN(cs,k));if(best===null||x<best)best=x}return best}
+const canonAll=cs=>[canonRot(cs),canonRot(mirP(cs))].sort()[0];
+function balanceSVG(heavy,light,heavyLeft){const L=heavyLeft?heavy:light,R=heavyLeft?light:heavy,yl=heavyLeft?58:30,yr=heavyLeft?30:58;
+ return `<svg viewBox="0 0 200 100" width="190" height="95" aria-hidden="true"><polygon points="100,44 88,96 112,96" fill="var(--line)"/><line x1="24" y1="${yl}" x2="176" y2="${yr}" stroke="var(--muted)" stroke-width="5" stroke-linecap="round"/><text x="24" y="${yl-8}" font-size="34" text-anchor="middle">${L}</text><text x="176" y="${yr-8}" font-size="34" text-anchor="middle">${R}</text></svg>`}
+function cubesSVG(hm,cols,rows){const W=44,Hh=22,C=24;let maxH=0;hm.forEach(r=>r.forEach(v=>maxH=Math.max(maxH,v)));
+ const ox=rows*W/2+6,oy=maxH*C+8,w=(cols+rows)*W/2+12,ht=(cols+rows)*Hh/2+maxH*C+20;let s=`<svg viewBox="0 0 ${w} ${ht}" width="${Math.min(330,w*1.5)}" aria-hidden="true">`;
+ const cubes=[];for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)for(let z=0;z<hm[y][x];z++)cubes.push([x,y,z]);
+ cubes.sort((a,b)=>(a[0]+a[1])-(b[0]+b[1])||a[2]-b[2]);
+ for(const [x,y,z] of cubes){const cx=ox+(x-y)*W/2,cy=oy+(x+y)*Hh/2-z*C,p=a=>a.map(q=>q.join(',')).join(' ');
+  s+=`<polygon points="${p([[cx,cy-C],[cx+W/2,cy-C+Hh/2],[cx,cy-C+Hh],[cx-W/2,cy-C+Hh/2]])}" fill="#a9dfe9" stroke="#12121f" stroke-width="1.2"/>`;
+  s+=`<polygon points="${p([[cx-W/2,cy-C+Hh/2],[cx,cy-C+Hh],[cx,cy+Hh],[cx-W/2,cy+Hh/2]])}" fill="#5fb3c4" stroke="#12121f" stroke-width="1.2"/>`;
+  s+=`<polygon points="${p([[cx,cy-C+Hh],[cx+W/2,cy-C+Hh/2],[cx+W/2,cy+Hh/2],[cx,cy+Hh]])}" fill="#3a8394" stroke="#12121f" stroke-width="1.2"/>`}
+ return s+'</svg>'}
+function gridSVG(cols,rows,filled,col){const u=100/Math.max(cols,rows);let s=`<svg viewBox="-2 -2 ${cols*u+4} ${rows*u+4}" width="${Math.round(cols*u*2.3)}" aria-hidden="true">`;
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const f=filled.has(x+','+y);s+=`<rect x="${x*u+1}" y="${y*u+1}" width="${u-2}" height="${u-2}" rx="2" fill="${f?col:'transparent'}" stroke="${f?'none':'var(--muted)'}" stroke-dasharray="${f?'':'3 3'}" stroke-width="1.2"/>`}
+ return s+'</svg>'}
+const MEMO=['🍎','🍐','🍋','🍇','🍓','🥕','🌻','🐶','🐱','🐟','🦉','🚲','⚓','🏠','🔑','☂️','⭐','🌙','🎈','🧀','🐌','🍄'];
+const HEAVY=['🟥','🟦','🟩','🟨','🟪','🟧'];
+
+function clockSVG(h,m,nums){let s='<svg viewBox="0 0 200 200" width="230" height="230" aria-hidden="true"><circle cx="100" cy="100" r="94" fill="var(--card2)" stroke="var(--line)" stroke-width="3"/>';
+ for(let i=0;i<60;i++){const a=i*6*Math.PI/180,r1=i%5?86:80;s+=`<line x1="${100+Math.sin(a)*r1}" y1="${100-Math.cos(a)*r1}" x2="${100+Math.sin(a)*90}" y2="${100-Math.cos(a)*90}" stroke="${i%5?'var(--muted)':'var(--text)'}" stroke-width="${i%5?1:3}"/>`}
+ if(nums)for(let i=1;i<=12;i++){const a=i*30*Math.PI/180;s+=`<text x="${100+Math.sin(a)*66}" y="${100-Math.cos(a)*66+6}" text-anchor="middle" font-size="17" font-weight="700" fill="var(--text)" font-family="DM Sans,sans-serif">${i}</text>`}
+ const ha=((h%12)+m/60)*30*Math.PI/180,ma=m*6*Math.PI/180;
+ s+=`<line x1="100" y1="100" x2="${100+Math.sin(ha)*46}" y2="${100-Math.cos(ha)*46}" stroke="var(--text)" stroke-width="7" stroke-linecap="round"/>`;
+ s+=`<line x1="100" y1="100" x2="${100+Math.sin(ma)*74}" y2="${100-Math.cos(ma)*74}" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><circle cx="100" cy="100" r="6" fill="var(--text)"/></svg>`;return s}
+
+const GROC=['Milch','Brot','Butter','Käse','Eier','Äpfel','Bananen','Nudeln','Reis','Kaffee','Tee','Zucker','Mehl','Salz','Joghurt','Quark','Tomaten','Gurke','Zwiebeln','Kartoffeln','Honig','Marmelade','Senf','Ketchup','Wurst','Schinken','Hähnchen','Lachs','Haferflocken','Müsli','Orangensaft','Sprudel','Spülmittel','Klopapier','Zahnpasta','Shampoo','Seife','Batterien','Kerzen','Servietten','Olivenöl','Essig','Pfeffer','Paprika','Möhren','Salat','Pilze','Knoblauch','Zitronen','Trauben','Erdbeeren','Kekse','Schokolade','Chips','Sahne','Hundefutter','Brötchen','Mais','Bohnen','Linsen','Müllbeutel','Alufolie'];
+const ANA=(()=>{const m=new Map();for(const [c,ws] of Object.entries(CATS))for(const w of ws)m.set(w,c);for(const w of GROC)if(!m.has(w))m.set(w,'Einkauf');return [...m].filter(([w])=>/^[A-Za-zÄÖÜäöü]+$/.test(w)&&w.length>=4&&w.length<=10).map(([w,c])=>({w,hint:c}))})();
+const SCRIPTS=[
+{t:'Tee kochen',s:['Wasserkocher mit Wasser füllen','Wasserkocher einschalten','Teebeutel in die Tasse hängen','Kochendes Wasser in die Tasse gießen','Tee einige Minuten ziehen lassen','Teebeutel herausnehmen','Tee trinken']},
+{t:'Wäsche waschen',s:['Wäsche nach Farben sortieren','Wäsche in die Trommel legen','Waschmittel einfüllen','Programm auswählen','Maschine starten','Nasse Wäsche herausnehmen','Wäsche aufhängen']},
+{t:'Mit Theo Gassi gehen',s:['Leine vom Haken nehmen','Leine am Halsband einhaken','Haustür öffnen','Runde durch die Siedlung drehen','Zurück nach Hause kommen','Leine abmachen','Theo frisches Wasser geben']},
+{t:'Paket verschicken',s:['Gegenstand in den Karton legen','Karton zukleben','Adressaufkleber aufkleben','Zur Post fahren','Paket am Schalter abgeben','Porto bezahlen','Beleg einstecken']},
+{t:'Pizza backen',s:['Ofen vorheizen','Teig ausrollen','Tomatensoße verstreichen','Belag verteilen','Käse darüberstreuen','Pizza in den Ofen schieben','Fertige Pizza herausnehmen']},
+{t:'Arzttermin',s:['In der Praxis anrufen','Termin vereinbaren','Termin in den Kalender eintragen','Am Termin zur Praxis fahren','Am Empfang anmelden','Im Wartezimmer warten','Ins Sprechzimmer gerufen werden']},
+{t:'Spiegelei braten',s:['Pfanne auf den Herd stellen','Herd einschalten','Öl in die Pfanne geben','Ei aufschlagen','Ei in die Pfanne gleiten lassen','Ei stocken lassen','Ei auf den Teller geben']},
+{t:'Wocheneinkauf',s:['Vorräte prüfen','Einkaufszettel schreiben','Zum Supermarkt fahren','Waren in den Wagen legen','An der Kasse bezahlen','Nach Hause fahren','Einkäufe einräumen']},
+{t:'Geburtstagsgeschenk',s:['Überlegen, was passen könnte','Geschenk kaufen','Preisschild entfernen','Geschenk einpacken','Karte schreiben','Zur Feier fahren','Geschenk überreichen']},
+{t:'Pflanze umtopfen',s:['Größeren Topf besorgen','Pflanze aus dem alten Topf ziehen','Alte Erde abschütteln','Etwas frische Erde in den neuen Topf füllen','Pflanze hineinsetzen','Rundherum mit Erde auffüllen','Pflanze angießen']},
+{t:'Videotherapie-Termin',s:['Termin im Kalender nachsehen','Tablet aufladen','Ruhigen Platz suchen','Link zur Sitzung öffnen','Kamera und Mikrofon prüfen','Therapiestunde mitmachen','Hausaufgaben notieren']},
+{t:'Bett frisch beziehen',s:['Fenster zum Lüften öffnen','Alte Bettwäsche abziehen','Alte Wäsche in den Wäschekorb legen','Spannbettlaken aufziehen','Kissen und Decke frisch beziehen','Kissen und Decke aufs Bett legen','Fenster wieder schließen']},
+{t:'Kaffee aus der Maschine',s:['Wassertank füllen','Maschine einschalten','Tasse unter den Auslauf stellen','Kaffeesorte wählen','Starttaste drücken','Kaffee durchlaufen lassen','Tasse herausnehmen']},
+{t:'Rezept in der Apotheke einlösen',s:['Rezept in der Praxis bekommen','Zur Apotheke fahren','Rezept an der Theke abgeben','Warten, bis das Medikament geholt ist','Zuzahlung bezahlen','Medikament einstecken','Zu Hause in den Schrank legen']},
+{t:'Brief schreiben',s:['Papier und Stift holen','Datum oben hinschreiben','Anrede schreiben','Den eigentlichen Text schreiben','Unterschreiben','Brief in den Umschlag stecken','Briefmarke aufkleben']},
+{t:'Kuchen backen',s:['Rezept heraussuchen','Zutaten abwiegen','Teig rühren','Teig in die Form füllen','Form in den Ofen stellen','Stäbchenprobe machen','Kuchen abkühlen lassen']},
+{t:'Koffer für den Urlaub',s:['Packliste schreiben','Koffer vom Dachboden holen','Kleidung einpacken','Kulturbeutel obendrauf legen','Koffer schließen','Koffer ins Auto laden','Losfahren']},
+{t:'Pommes aus der Heißluftfritteuse',s:['Gerät einstecken','Korb herausziehen','Pommes in den Korb geben','Korb wieder einschieben','Temperatur und Zeit einstellen','Nach der Hälfte schütteln','Pommes auf den Teller geben']},
+{t:'Rasen mähen',s:['Rasenmäher aus dem Schuppen holen','Grasfangkorb einhängen','Rasenmäher starten','Bahn für Bahn mähen','Rasenmäher ausschalten','Grasfangkorb leeren','Mäher zurück in den Schuppen stellen']},
+{t:'Handy-Update',s:['Handy ans Ladekabel anschließen','Einstellungen öffnen','Softwareupdate antippen','Update herunterladen lassen','Installieren antippen','Neustart abwarten','Handy entsperren']}
+];
+const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const VOW='AEIOU',CONS='BDFGKLMNPRST';
+const median=a=>{const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:0};
+const slowed=rts=>{if(rts.length<8)return false;const k=Math.floor(rts.length/2);return median(rts.slice(k))>median(rts.slice(0,k))*1.3};
+const dropped=arr=>{if(arr.length<8)return false;const k=Math.floor(arr.length/2);return avg(arr.slice(0,k))-avg(arr.slice(k))>=.25};
+function freshPick(pool,n,key){const seen=new Set(S.seen||[]);const fresh=shuffle(pool.filter(x=>!seen.has(key(x))));const rest=shuffle(pool.filter(x=>seen.has(key(x))));const out=[...fresh,...rest].slice(0,n);S.seen=[...(S.seen||[]),...out.map(key)].slice(-260);save();return out}
+SCRIPTS.push(
+{t:'Hemd bügeln',s:['Bügelbrett aufstellen','Bügeleisen mit Wasser füllen','Bügeleisen einstecken','Warten, bis es heiß ist','Hemd auf das Brett legen','Hemd bügeln','Hemd auf den Bügel hängen']},
+{t:'Blumenstrauß in die Vase',s:['Vase aus dem Schrank holen','Vase mit Wasser füllen','Papier vom Strauß entfernen','Stiele schräg anschneiden','Blumen in die Vase stellen','Vase auf den Tisch stellen','Wasser nach zwei Tagen wechseln']},
+{t:'Auto tanken',s:['Zur Tankstelle fahren','Motor ausschalten','Tankdeckel öffnen','Zapfpistole einstecken','Tanken','Tankdeckel schließen','An der Kasse bezahlen']},
+{t:'Geschirrspüler',s:['Essensreste abkratzen','Geschirr einräumen','Tab einlegen','Klappe schließen','Programm starten','Warten, bis er fertig ist','Sauberes Geschirr ausräumen']},
+{t:'Duschen',s:['Handtuch bereitlegen','Kleidung ausziehen','Wasser andrehen','Temperatur prüfen','Haare waschen','Wasser abdrehen','Abtrocknen']},
+{t:'Mit Theo zum Tierarzt',s:['Termin beim Tierarzt machen','Theo die Leine anlegen','Theo ins Auto setzen','Zur Praxis fahren','Im Wartezimmer warten','Theo untersuchen lassen','Rechnung bezahlen']}
+);
+const SC=[{n:'ROT',c:'#f07878'},{n:'BLAU',c:'#6fa8f5'},{n:'GRÜN',c:'#6fd29a'},{n:'GELB',c:'#f2d46b'}];
+const CONF={'O':'0','0':'O','B':'8','8':'B','S':'5','5':'S','Z':'2','2':'Z','E':'F','P':'R','R':'P','M':'N','N':'M','6':'9','9':'6','1':'7','7':'1','U':'V','V':'U','G':'C','H':'K','K':'H'};
+
+/* ================= Übungen ================= */
+const EX=[
+{id:'schulte',dom:'conc',name:'Der Reihe nach',
+ how:L=>L>=7?'Tippe abwechselnd Zahl und Buchstabe in der richtigen Reihenfolge: 1 → A → 2 → B → 3 → C …':'Tippe die Zahlen der Reihe nach an: 1, 2, 3 … Drei Runden.',
+ run(ctx){const L=ctx.level,ABC='ABCDEFGHIJKL';
+  const cfg=L<=2?{c:3,n:9}:L<=4?{c:4,n:16}:L<=6?{c:5,n:25}:L<=8?{c:4,t:8}:{c:5,t:10};
+  const order=cfg.t?Array.from({length:cfg.t*2},(_,i)=>i%2?ABC[(i-1)/2]:String(i/2+1)):Array.from({length:cfg.n},(_,i)=>String(i+1));
+  const R=ctx.calm?2:3;let r=0,err=0,ok=0;const t0=Date.now();
+  const grid=h('div',{class:'grid',style:`grid-template-columns:repeat(${cfg.c},1fr)`});ctx.root.append(grid);
+  function round(){ctx.progress(r+1,R);grid.innerHTML='';let nx=0;
+   shuffle(order.slice()).forEach(v=>{const c=h('button',{class:'cell'},v);c.onclick=()=>{if(c.classList.contains('done'))return;
+    if(v===order[nx]){c.classList.add('done');nx++;ok++;if(nx===order.length){r++;if(r<R)ctx.t(round,600);else ctx.finish(ok/(ok+err),ctx.calm?`${err} Fehltipper`:`${err} Fehltipper · ${Math.round((Date.now()-t0)/1000)} Sekunden`)}}
+    else{err++;flash(c,'bad')}};grid.append(c)})}
+  round()}},
+{id:'gonogo',dom:'conc',name:'Nur der Stern',
+ how:L=>`Ein Zeichen nach dem anderen erscheint. Tippe auf die Fläche, wenn ein ${L>=4?'blauer ':''}Stern ★ kommt. Bei allem anderen: nichts tun.`,
+ run(ctx){const L=ctx.level,N=ctx.calm?16:24,dur=ctx.calm?Math.max(1300,2000-L*60):Math.max(650,1500-L*85),nT=Math.round(N*.35);const seq01=[];const BL='#8fb8ff';
+  const trials=shuffle([...Array.from({length:nT},()=>({t:1,s:'★',c:BL})),...Array.from({length:N-nT},()=>{const r=Math.random();if(L>=7&&r<.25)return{t:0,s:'☆',c:BL};if(L>=4&&r<.5)return{t:0,s:'★',c:'#f2c27b'};return{t:0,s:pick(['●','▲','■','◆']),c:'#9a99b6'}})]);
+  const sym=h('div',{class:'sym'}),stage=h('div',{class:'stage'},sym);ctx.root.append(stage,h('p',{class:'center muted small'},'Tippe irgendwo auf die Fläche.'));
+  let i=0,cor=0,hits=0,fa=0,cur=null,tapped=false;
+  stage.addEventListener('pointerdown',e=>{e.preventDefault();if(!cur||tapped)return;tapped=true;stage.classList.add(cur.t?'hit':'miss')});
+  function next(){if(i>=N)return ctx.finish(cor/N,`${hits} von ${nT} Sternen erwischt · ${fa}× zu viel getippt`,{drop:dropped(seq01)});
+   ctx.progress(i+1,N);cur=trials[i];tapped=false;sym.textContent=cur.s;sym.style.color=cur.c;
+   ctx.t(()=>{const c0=cor;if(cur.t){if(tapped){cor++;hits++}}else{if(!tapped)cor++;else fa++}seq01.push(cor>c0?1:0);cur=null;sym.textContent='';stage.classList.remove('hit','miss');i++;ctx.t(next,450+rnd(350))},dur)}
+  sym.textContent='Bereit?';sym.style.cssText='font-size:1.4em;color:var(--muted)';
+  ctx.t(()=>{sym.textContent='';sym.style.cssText='';ctx.t(next,500)},1400)}},
+{id:'stroop',dom:'conc',name:'Farbe, nicht Wort',
+ how:L=>'Ein Farbwort erscheint – in einer bestimmten Schriftfarbe. Tippe die SCHRIFTFARBE an, nicht das, was da steht.'+(L>=7?' Die Knöpfe wechseln dabei ihre Position.':''),
+ run(ctx){const L=ctx.level,N=ctx.calm?12:16,pInc=Math.min(.9,.35+L*.06);const oks=[];
+  const word=h('div',{class:'stroop'}),btns=h('div',{class:'grid2'});ctx.root.append(h('div',{class:'stage'},word),btns);
+  let i=0,cor=0,rts=[],t0=0,cur=null,locked=true,order=SC.slice();
+  function draw(){btns.innerHTML='';order.forEach(c=>{const b=h('button',{class:'btn'},h('span',{class:'dot',style:`background:${c.c}`}),c.n.charAt(0)+c.n.slice(1).toLowerCase());b.onclick=()=>answer(c,b);btns.append(b)})}
+  function next(){if(i>=N)return ctx.finish(cor/N,ctx.calm?'':`Ø ${(avg(rts)/1000).toFixed(1)} s pro Wort`,{slow:slowed(rts),drop:dropped(oks)});ctx.progress(i+1,N);
+   const ink=pick(SC),w=Math.random()<pInc?pick(SC.filter(c=>c!==ink)):ink;if(L>=7)order=shuffle(SC.slice());draw();
+   cur=ink;word.textContent=w.n;word.style.color=ink.c;t0=performance.now();locked=false}
+  function answer(c,b){if(locked)return;locked=true;rts.push(performance.now()-t0);oks.push(c===cur?1:0);if(c===cur){cor++;flash(b,'good')}else flash(b,'bad');i++;word.textContent='';ctx.t(next,380)}
+  draw();ctx.t(next,400)}},
+{id:'corsi',dom:'mem',name:'Felder merken',
+ how:'Einige Felder leuchten nacheinander auf. Tippe sie danach in derselben Reihenfolge an.',
+ run(ctx){const L=ctx.level,n=L<=5?3:4,len=Math.min(n*n-1,3+Math.floor((L-1)/2)),T=5;
+  const grid=h('div',{class:'grid corsi',style:`grid-template-columns:repeat(${n},1fr);max-width:${n===3?300:360}px;margin:8px auto`}),cells=[];
+  for(let k=0;k<n*n;k++){const c=h('button',{class:'cell'});c.onclick=()=>tap(k);cells.push(c);grid.append(c)}
+  const st=h('p',{class:'center muted'},'');ctx.root.append(grid,st);
+  let t=0,score=0,seq=[],pos=0,input=false;
+  function trial(){if(t>=T)return ctx.finish(score/T,`Folgen mit ${len} Feldern`);ctx.progress(t+1,T);
+   seq=sample([...Array(n*n).keys()],len);pos=0;input=false;st.textContent='Schau genau hin …';grid.classList.add('watch');let j=0;
+   const show=()=>{if(j>=seq.length){st.textContent='Jetzt du – gleiche Reihenfolge.';grid.classList.remove('watch');input=true;return}
+    const c=cells[seq[j]];c.classList.add('lit');ctx.t(()=>{c.classList.remove('lit');j++;ctx.t(show,ctx.calm?400:280)},ctx.calm?950:680)};ctx.t(show,800)}
+  function tap(k){if(!input)return;const c=cells[k];
+   if(k===seq[pos]){c.classList.add('lit');setTimeout(()=>c.classList.remove('lit'),220);pos++;if(pos===seq.length){input=false;score+=1;st.textContent='Richtig.';t++;ctx.t(trial,1000)}}
+   else{input=false;flash(c,'bad');score+=pos/seq.length*.6;st.textContent='Nicht ganz – nächste Runde.';t++;ctx.t(trial,1300)}}
+  trial()}},
+{id:'digits',dom:'mem',name:'Zahlen merken',
+ how:L=>L>=6?'Zahlen erscheinen nacheinander. Gib sie danach RÜCKWÄRTS ein – die letzte zuerst.':'Zahlen erscheinen nacheinander. Gib sie danach in derselben Reihenfolge ein.',
+ run(ctx){const L=ctx.level,back=L>=6,len=back?4+Math.floor((L-6)/2):3+Math.floor(L/2),T=5;
+  const big=h('div',{class:'digit'}),typed=h('div',{class:'typed'}),st=h('p',{class:'center muted'}),pad=h('div',{class:'kpad off'});
+  ['1','2','3','4','5','6','7','8','9','⌫','0','OK'].forEach(k=>pad.append(h('button',{class:'btn'+(k==='OK'?' primary':''),onclick:()=>key(k)},k)));
+  ctx.root.append(h('div',{class:'stage',style:'min-height:150px'},big),typed,st,pad);
+  let t=0,score=0,seq=[],inp=[],active=false;
+  const drawT=()=>{typed.innerHTML='';for(let k=0;k<len;k++)typed.append(h('span',{},inp[k]!=null?String(inp[k]):''))};
+  function trial(){if(t>=T)return ctx.finish(score/T,`${len} Ziffern${back?' rückwärts':''}`);ctx.progress(t+1,T);
+   seq=[];while(seq.length<len){const d=rnd(10);if(d!==seq[seq.length-1])seq.push(d)}
+   inp=[];active=false;drawT();pad.classList.add('off');st.textContent='Merk dir die Zahlen …';let j=0;
+   const show=()=>{if(j>=len){big.textContent='';st.textContent=back?'Jetzt rückwärts eingeben.':'Jetzt eingeben.';active=true;pad.classList.remove('off');return}
+    big.textContent=seq[j];ctx.t(()=>{big.textContent='';j++;ctx.t(show,ctx.calm?350:250)},ctx.calm?1150:850)};ctx.t(show,700)}
+  function key(k){if(!active)return;if(k==='⌫')inp.pop();else if(k==='OK')return check();else if(inp.length<len)inp.push(+k);drawT()}
+  function check(){if(inp.length<len){flash(typed,'shake');return}active=false;pad.classList.add('off');const target=back?seq.slice().reverse():seq;
+   const c=target.filter((d,i)=>inp[i]===d).length;score+=c===len?1:c/len*.6;st.textContent=c===len?'Richtig.':`Richtig wäre: ${target.join(' ')}`;t++;ctx.t(trial,c===len?1000:2000)}
+  trial()}},
+{id:'einkauf',dom:'mem',name:'Einkaufszettel',
+ how:'Präg dir den Einkaufszettel ein. Danach suchst du die Dinge aus einer längeren Liste heraus. Zwei Runden.',
+ run(ctx){const L=ctx.level,N=Math.min(9,4+Math.floor(L/2)),R=2;let r=0,sum=0;
+  function round(){if(r>=R)return ctx.finish(sum/R,`${N} Dinge pro Zettel`);ctx.progress(r+1,R);ctx.root.innerHTML='';
+   const pool=sample(GROC,N*2),list=pool.slice(0,N),limit=N*3000;let done=false;
+   const bar=h('div',{class:'bar',style:ctx.calm?'display:none':''},h('i',{style:'width:100%;transition:none'}));
+   ctx.root.append(h('div',{class:'card note'},h('h3',{},'Einkaufszettel'),h('ul',{},list.map(w=>h('li',{},w)))),bar,h('p',{class:'center muted small'},ctx.calm?'Nimm dir die Zeit, die du brauchst.':'Nimm dir die Zeit, die du brauchst – oder bis der Balken leer ist.'),h('button',{class:'btn primary',onclick:test},'Gemerkt'));
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.firstChild.style.transition=`width ${limit}ms linear`;bar.firstChild.style.width='0%'}));
+   const tid=ctx.calm?null:ctx.t(test,limit);
+   function test(){if(done)return;done=true;if(tid)ctx.clear(tid);ctx.root.innerHTML='';ctx.root.append(h('div',{class:'stage'},h('p',{class:'muted'},'Kurz durchatmen …')));
+    ctx.t(()=>{ctx.root.innerHTML='';const sel=new Set();const wrap=h('div',{class:'wchips'});const info=h('p',{class:'center muted'},'Was stand auf dem Zettel? Tippe alles an, woran du dich erinnerst.');
+     const chips=shuffle(pool.slice()).map(w=>{const c=h('button',{class:'chip'},w);c.onclick=()=>{if(finished)return;sel.has(w)?sel.delete(w):sel.add(w);c.classList.toggle('on')};wrap.append(c);return [w,c]});
+     let finished=false;const btn=h('button',{class:'btn primary'},'Fertig');
+     btn.onclick=()=>{if(finished){r++;round();return}finished=true;let hit=0,fa=0;
+      chips.forEach(([w,c])=>{c.classList.remove('on');const on=list.includes(w);if(on&&sel.has(w)){hit++;c.classList.add('hit')}else if(on)c.classList.add('miss');else if(sel.has(w)){fa++;c.classList.add('fa')}});
+      sum+=clamp((hit-fa)/N,0,1);info.textContent=`${hit} von ${N} gefunden${fa?` · ${fa} zu viel`:''}. Gestrichelt = übersehen.`;btn.textContent='Weiter'};
+     ctx.root.append(info,wrap,btn)},L>=5?4000:2000)}}
+  round()}},
+{id:'wortfinden',dom:'lang',name:'Wort finden',
+ how:'Du bekommst eine Beschreibung. Finde das passende Wort und tippe es ein. Tipps sind erlaubt.',
+ run(ctx){const L=ctx.level,tier=L<=3?1:L<=6?2:3,T=ctx.calm?5:6;const pool=WORDS.filter(w=>w[2]===tier),items=freshPick(pool,T,w=>w[0]);let i=0,sum=0;
+  function item(){if(i>=T)return ctx.finish(sum/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';
+   const [word,def]=items[i],chars=[...word];let shown=new Set(L<=4||L===7?[0]:[]),hints=0,locked=false;
+   const boxes=h('div',{class:'boxes'});const draw=()=>{boxes.innerHTML='';chars.forEach((c,k)=>boxes.append(h('span',{class:'box'+(shown.has(k)?' on':'')},shown.has(k)?up(c):'')))};draw();
+   const inp=h('input',{class:'inp',type:'text',autocomplete:'off',autocorrect:'off',autocapitalize:'off',spellcheck:'false',placeholder:'Dein Wort …'});
+   const st=h('p',{class:'center muted small'},`${chars.length} Buchstaben`);
+   const lock=()=>{locked=true;inp.disabled=true;[okB,hintB,giveB].forEach(b=>b.disabled=true)};
+   const reveal=()=>{shown=new Set(chars.keys());draw();st.textContent=`Gesucht war: ${word}`;lock();ctx.t(()=>{i++;item()},2000)};
+   const submit=()=>{if(locked)return;if(norm(inp.value)===norm(word)){shown=new Set(chars.keys());draw();boxes.classList.add('solved');sum+=Math.max(.4,1-hints*.2);st.textContent='Richtig.';lock();ctx.t(()=>{i++;item()},1100)}
+    else if(inp.value.trim()){flash(inp,'bad');flash(inp,'shake');st.textContent='Noch nicht. Nochmal versuchen oder einen Tipp holen.'}};
+   inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+   const okB=h('button',{class:'btn primary',onclick:submit},'Prüfen');
+   const hintB=h('button',{class:'btn',onclick:()=>{const k=chars.findIndex((c,k)=>!shown.has(k));if(k<0)return;shown.add(k);hints++;draw();if(shown.size===chars.length){sum+=0;reveal()}}},'Tipp');
+   const giveB=h('button',{class:'btn ghost',onclick:reveal},'Auflösen');
+   ctx.root.append(h('div',{class:'card'},h('p',{class:'muted small',style:'margin:0'},'Gesucht wird:'),h('p',{class:'def'},def)),boxes,inp,st,h('div',{class:'row'},hintB,giveB),h('div',{style:'height:10px'}),okB);
+   if(fine)setTimeout(()=>inp.focus(),60)}
+  item()}},
+{id:'oddone',dom:'lang',name:'Was passt nicht?',
+ how:'Vier Wörter – drei gehören zusammen. Tippe das Wort an, das nicht dazugehört.',
+ run(ctx){const L=ctx.level,T=ctx.calm?8:10,names=Object.keys(CATS);let i=0,cor=0;
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';
+   let a,b;if(L>=8||(L>=5&&Math.random()<.5))[a,b]=shuffle(pick(CLOSE).slice());else{a=pick(names);b=pick(names.filter(n=>n!==a))}
+   const three=sample(CATS[a],3),odd=pick(CATS[b]),opts=shuffle([...three,odd]);let done=false;
+   const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},opts.map(w=>{const bt=h('button',{class:'btn opt',style:'min-height:70px'},w);bt.onclick=()=>{if(done)return;done=true;const ok=w===odd;if(ok)cor++;
+    grid.querySelectorAll('button').forEach(x=>{if(x.textContent===odd)x.classList.add('good');else if(x===bt)x.classList.add('bad')});
+    st.textContent=`${ok?'Richtig. ':''}${three.join(', ')} → ${a}. ${odd} → ${b}.`;ctx.t(()=>{i++;trial()},ok?1700:2800)};return bt}));
+   ctx.root.append(h('p',{class:'center'},'Welches Wort passt nicht dazu?'),grid,st)}
+  trial()}},
+{id:'anagramm',dom:'lang',name:'Buchstabensalat',
+ how:'Bilde aus den Buchstaben ein Wort. Tippe sie in der richtigen Reihenfolge an. Einen Buchstaben oben antippen legt ihn zurück.',
+ run(ctx){const L=ctx.level,T=ctx.calm?4:5,target=[4,5,5,6,6,7,7,8,8,9][L-1];
+  let pool=ANA.filter(x=>x.w.length===target);if(pool.length<T)pool=ANA.filter(x=>Math.abs(x.w.length-target)<=1);
+  const items=freshPick(pool,T,x=>'a:'+x.w);let i=0,sum=0;
+  function item(){if(i>=T)return ctx.finish(sum/T,`Wörter mit etwa ${target} Buchstaben`);ctx.progress(i+1,T);ctx.root.innerHTML='';
+   const {w,hint}=items[i],W=w.toUpperCase();let letters=[...W].map((c,k)=>({c,k})),tries=0;
+   do{shuffle(letters);tries++}while(letters.map(x=>x.c).join('')===W&&tries<10);
+   let ans=[],hints=0,done=false;const slots=h('div',{class:'slots'}),tiles=h('div',{class:'tiles'}),st=h('p',{class:'center muted small'},''),theme=h('p',{class:'center small',style:'min-height:1.4em;margin:0'},'');
+   function draw(){slots.innerHTML='';for(let k=0;k<W.length;k++){const x=ans[k];const s=h('button',{class:'slot'+(x?' on':'')},x?x.c:'');if(x)s.onclick=()=>{if(done)return;ans.splice(k,1);draw()};slots.append(s)}
+    tiles.innerHTML='';letters.forEach(x=>{const used=ans.includes(x);const t=h('button',{class:'tile'+(used?' used':''),disabled:used},x.c);t.onclick=()=>{if(done||used)return;ans.push(x);draw();if(ans.length===W.length)check()};tiles.append(t)})}
+   function check(){if(ans.map(x=>x.c).join('')===W){done=true;slots.classList.add('solved');sum+=Math.max(.4,1-hints*.2);st.textContent='Richtig.';lockB();ctx.t(()=>{i++;item()},1100)}
+    else{st.textContent='Noch nicht – tippe oben Buchstaben an, um sie zurückzulegen.';flash(slots,'bad',600)}}
+   const lockB=()=>[hintB,giveB,clrB].forEach(b=>b.disabled=true);
+   const hintB=h('button',{class:'btn',onclick:()=>{if(done)return;hints++;if(hints===1){theme.textContent=`Thema: ${hint}`;return}
+    const n=Math.min(W.length-1,hints-1);const fixed=[];for(let k=0;k<n;k++){const x=letters.find(o=>o.c===W[k]&&!fixed.includes(o));fixed.push(x)}ans=fixed;draw()}},'Tipp');
+   const clrB=h('button',{class:'btn',onclick:()=>{if(!done){ans=[];draw()}}},'Leeren');
+   const giveB=h('button',{class:'btn ghost',onclick:()=>{if(done)return;done=true;ans=[...W].map(c=>({c}));draw();slots.classList.add('solved');st.textContent=`Gesucht war: ${w}`;lockB();ctx.t(()=>{i++;item()},2000)}},'Auflösen');
+   ctx.root.append(theme,slots,tiles,st,h('div',{class:'row'},hintB,clrB,giveB));draw()}
+  item()}},
+{id:'vergleich',dom:'plan',name:'Gleich oder anders?',
+ how:'Zwei Zeichenfolgen erscheinen untereinander. Sind sie genau gleich? Antworte zügig, aber ohne Hetze.',
+ run(ctx){const L=ctx.level,N=ctx.calm?14:20,len=Math.min(8,3+Math.floor(L/2)),set=L<=3?'0123456789':'0123456789ABCDEFGHKLMNPRSTUVWXZ';
+  const a=h('div',{class:'cmp'}),b=h('div',{class:'cmp'});const bS=h('button',{class:'btn'},'Gleich'),bA=h('button',{class:'btn'},'Anders');
+  let i=0,cor=0,rts=[],oks=[],t0=0,same=false,locked=true;bS.onclick=()=>ans(true,bS);bA.onclick=()=>ans(false,bA);
+  const mk=()=>{let s='';for(let k=0;k<len;k++)s+=pick(set);return s};
+  function diff(s){const arr=[...s];if(L>=5&&Math.random()<.3){const k=rnd(len-1);if(arr[k]!==arr[k+1]){[arr[k],arr[k+1]]=[arr[k+1],arr[k]];return arr.join('')}}
+   const k=rnd(len),c=arr[k];arr[k]=(L>=7&&CONF[c]&&set.includes(CONF[c]))?CONF[c]:pick([...set].filter(x=>x!==c));return arr.join('')}
+  function next(){if(i>=N)return ctx.finish(cor/N,ctx.calm?'':`Ø ${(avg(rts)/1000).toFixed(1)} s pro Vergleich`,{slow:slowed(rts),drop:dropped(oks)});ctx.progress(i+1,N);const s=mk();same=Math.random()<.5;a.textContent=s;b.textContent=same?s:diff(s);t0=performance.now();locked=false}
+  function ans(v,btn){if(locked)return;locked=true;rts.push(performance.now()-t0);oks.push(v===same?1:0);if(v===same){cor++;flash(btn,'good')}else flash(btn,'bad');i++;a.textContent='';b.textContent='';ctx.t(next,380)}
+  ctx.root.append(h('div',{class:'stage col'},a,b),h('div',{class:'row'},bS,bA));ctx.t(next,500)}},
+{id:'reihen',dom:'math',name:'Zahlenreihen',
+ how:'Welche Zahl kommt als Nächstes? Finde die Regel hinter der Reihe.',
+ run(ctx){const L=ctx.level,T=ctx.calm?6:8;let i=0,cor=0;
+  function gen(){const ty=L<=2?'add':L<=4?pick(['add','sub','dbl']):L<=6?pick(['alt','inc','add','sub']):L<=8?pick(['sq','fib','dblp1','alt','inc']):pick(['inter','altmul','fib','sq','dblp1']);let s=[];
+   switch(ty){
+    case'add':{const a=1+rnd(L<=2?5:9),st=1+rnd(20);s=[0,1,2,3,4,5].map(k=>st+k*a);break}
+    case'sub':{const a=2+rnd(8),st=60+rnd(40);s=[0,1,2,3,4,5].map(k=>st-k*a);break}
+    case'dbl':{const st=1+rnd(4);s=[0,1,2,3,4,5].map(k=>st*2**k);break}
+    case'alt':{const a=2+rnd(5),b=1+rnd(Math.max(1,a-1)),st=5+rnd(15);s=[st];for(let k=0;k<5;k++)s.push(s[k]+(k%2?-b:a));break}
+    case'inc':{const st=1+rnd(10),d=1+rnd(3);s=[st];for(let k=0;k<5;k++)s.push(s[k]+d+k);break}
+    case'sq':{const o=1+rnd(4);s=[0,1,2,3,4,5].map(k=>(k+o)**2);break}
+    case'fib':{const a=1+rnd(4),b=a+1+rnd(4);s=[a,b];while(s.length<6)s.push(s[s.length-1]+s[s.length-2]);break}
+    case'dblp1':{const st=1+rnd(3);s=[st];for(let k=0;k<5;k++)s.push(s[k]*2+1);break}
+    case'inter':{const a0=1+rnd(5),da=2+rnd(3),b0=30+rnd(20),db=2+rnd(4);s=[0,1,2,3,4,5].map(k=>k%2?b0-((k-1)/2)*db:a0+(k/2)*da);break}
+    case'altmul':{const st=2+rnd(4);s=[st];for(let k=0;k<5;k++)s.push(k%2?s[k]-1:s[k]*2);break}}
+   const ans=s[5],d=s[4]-s[3];const opts=new Set([ans]);
+   for(const c of shuffle([ans+1,ans-1,s[4]+d,ans+d,ans-d,ans+2,ans-2,ans*2,s[4]+(s[4]-s[3])+1,ans+10]))if(opts.size<4&&c!==ans&&c>=0)opts.add(c);
+   let x=ans+3;while(opts.size<4){opts.add(x);x++}return{shown:s.slice(0,5),ans,opts:shuffle([...opts])}}
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';const q=gen();let done=false;
+   const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},q.opts.map(o=>{const b=h('button',{class:'btn opt',style:'font-size:1.3em;min-height:66px'},String(o));b.onclick=()=>{if(done)return;done=true;
+    if(o===q.ans){cor++;b.classList.add('good');st.textContent='Richtig.'}else{b.classList.add('bad');grid.querySelectorAll('button').forEach(x=>{if(+x.textContent===q.ans)x.classList.add('good')});st.textContent=`Richtig wäre ${q.ans}.`}
+    ctx.t(()=>{i++;trial()},o===q.ans?1000:2200)};return b}));
+   ctx.root.append(h('div',{class:'stage',style:'min-height:130px'},h('div',{class:'cmp',style:'letter-spacing:.04em;font-size:1.6em'},q.shown.join(' · ')+' · ?')),grid,st)}
+  trial()}},
+{id:'alltag',dom:'plan',name:'Schritte ordnen',
+ how:'Eine Alltagsaufgabe, die Schritte sind durcheinander. Tippe sie in der richtigen Reihenfolge an. Nochmal antippen nimmt den Schritt (und alle danach) zurück.',
+ run(ctx){const L=ctx.level,T=ctx.calm?2:3,k=L<=3?4:L<=6?5:L<=8?6:7;const items=freshPick(SCRIPTS,T,x=>'s:'+x.t);let i=0,sum=0;
+  function item(){if(i>=T)return ctx.finish(sum/T,`${k} Schritte pro Aufgabe`);ctx.progress(i+1,T);ctx.root.innerHTML='';
+   const sc=items[i],idx=[...new Set(Array.from({length:k},(_,j)=>Math.round(j*(sc.s.length-1)/(k-1))))],steps=idx.map(j=>sc.s[j]);
+   let sh=steps.slice(),tries=0;do{shuffle(sh);tries++}while(sh.join()===steps.join()&&tries<10);
+   let picked=[],done=false;const list=h('div',{class:'steps'}),st=h('div',{class:'muted small'}),btn=h('button',{class:'btn primary',disabled:true},'Prüfen');
+   function draw(){list.innerHTML='';sh.forEach(s=>{const n=picked.indexOf(s);const b=h('button',{class:'step'+(n>=0?' on':'')},h('span',{class:'num'},n>=0?String(n+1):''),h('span',{},s));
+    b.onclick=()=>{if(done)return;if(n>=0)picked=picked.slice(0,n);else picked.push(s);draw()};list.append(b)});btn.disabled=picked.length!==steps.length}
+   btn.onclick=()=>{if(done){i++;item();return}done=true;const c=steps.filter((s,j)=>picked[j]===s).length;sum+=c/steps.length;
+    [...list.children].forEach((el,j)=>{const s=sh[j];el.classList.add(picked.indexOf(s)===steps.indexOf(s)?'good':'bad')});
+    st.innerHTML='';st.append(c===steps.length?h('p',{},'Alles in der richtigen Reihenfolge.'):h('div',{},h('p',{style:'margin:6px 0 2px'},`${c} von ${steps.length} an der richtigen Stelle. So wäre es:`),h('ol',{style:'margin:0;padding-left:1.3em'},steps.map(s=>h('li',{},s)))));btn.textContent='Weiter'};
+   ctx.root.append(h('p',{class:'muted small',style:'margin:0'},'Bring in die richtige Reihenfolge:'),h('h3',{},sc.t),list,st,h('div',{style:'height:8px'}),btn);draw()}
+  item()}}
+,{id:'umschalten',dom:'conc',name:'Umschalten',
+ how:L=>'Ein Paar aus Zahl und Buchstabe erscheint, z. B. „7 K“. OBEN auf der Fläche: Ist die Zahl gerade oder ungerade? UNTEN: Ist der Buchstabe ein Vokal (A, E, I, O, U) oder nicht?'+(L<=3?' Erst kommt nur oben, dann nur unten.':L<=6?' Die Position wechselt regelmäßig alle zwei Durchgänge.':' Die Position wechselt zufällig.'),
+ run(ctx){const L=ctx.level,N=ctx.calm?14:20;
+  const pos=Array.from({length:N},(_,k)=>L<=3?(k<N/2?0:1):L<=6?(Math.floor(k/2)%2):rnd(2));
+  const top=h('div',{class:'half'}),bot=h('div',{class:'half'}),stage=h('div',{class:'stage split'},top,bot);
+  const bL=h('button',{class:'btn'},h('div',{},'gerade'),h('div',{class:'small muted'},'Vokal')),bR=h('button',{class:'btn'},h('div',{},'ungerade'),h('div',{class:'small muted'},'kein Vokal'));
+  let i=0,cor=0,rts=[],oks=[],t0=0,locked=true,want=0;
+  bL.onclick=()=>ans(0,bL);bR.onclick=()=>ans(1,bR);
+  function next(){if(i>=N)return ctx.finish(cor/N,ctx.calm?'':`Ø ${(avg(rts)/1000).toFixed(1)} s pro Paar`,{slow:slowed(rts),drop:dropped(oks)});ctx.progress(i+1,N);
+   const n=1+rnd(9),isV=Math.random()<.5,l=isV?pick(VOW):pick(CONS);const p=pos[i];want=p===0?(n%2===0?0:1):(isV?0:1);
+   top.textContent=p===0?`${n} ${l}`:'';bot.textContent=p===1?`${n} ${l}`:'';t0=performance.now();locked=false}
+  function ans(v,b){if(locked)return;locked=true;rts.push(performance.now()-t0);oks.push(v===want?1:0);if(v===want){cor++;flash(b,'good')}else flash(b,'bad');i++;top.textContent='';bot.textContent='';ctx.t(next,ctx.calm?600:400)}
+  ctx.root.append(stage,h('div',{class:'row'},bL,bR));ctx.t(next,600)}},
+{id:'uhrzeit',dom:'plan',name:'Uhr & Termine',
+ how:'Kleine Rechenaufgaben aus dem Alltag: Uhrzeiten, Fahrzeiten, Wochentage. Schmierzettel ist erlaubt.',
+ run(ctx){const L=ctx.level,T=ctx.calm?6:8;let i=0,cor=0;
+  const fm=m=>{m=((m%1440)+1440)%1440;return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`};
+  const fd=m=>m<60?`${m} Min`:`${Math.floor(m/60)} Std ${m%60?(m%60)+' Min':''}`.trim();
+  function gen(){const ty=L<=2?'addA':L<=4?pick(['addA','addB']):L<=6?pick(['addB','sub','dur']):L<=8?pick(['dur','sub','addH','day']):pick(['dur','addH','day','sub']);
+   let q,a,c;
+   if(ty==='addA'){const s=(8+rnd(11))*60+5*rnd(6),d=5*(1+rnd(Math.max(1,(55-s%60)/5)));q=`Es ist ${fm(s)} Uhr. In ${d} Minuten beginnt deine Therapiestunde. Um wie viel Uhr?`;a=s+d;c=[a+5,a-5,a+10,a-10,a+60].map(fm);a=fm(a)}
+   else if(ty==='addB'){const s=(8+rnd(11))*60+20+5*rnd(8),d=15+5*rnd(9);q=`Es ist ${fm(s)} Uhr. In ${d} Minuten kommt der Bus. Um wie viel Uhr?`;a=s+d;c=[a-60,a+5,a-5,a+10].map(fm);a=fm(a)}
+   else if(ty==='sub'){const t=(9+rnd(9))*60+5*rnd(12),d=20+5*rnd(12);q=`Dein Termin ist um ${fm(t)} Uhr. Die Fahrt dauert ${d} Minuten. Wann musst du spätestens losfahren?`;a=t-d;c=[a+60,a-60,a+10,a-10,a+5].map(fm);a=fm(a)}
+   else if(ty==='dur'){const s=(8+rnd(10))*60+5*rnd(12),d=35+5*rnd(32);q=`Von ${fm(s)} bis ${fm(s+d)} Uhr – wie lange ist das?`;a=fd(d);c=[d+10,d-10,d+60,d-60,d+5,d+40].filter(x=>x>0).map(fd)}
+   else if(ty==='addH'){const s=(6+rnd(12))*60+5*rnd(12),H=1+rnd(2),M=5*(1+rnd(11)),d=H*60+M;q=`Der Zug fährt um ${fm(s)} Uhr ab. Die Fahrt dauert ${H} Std ${M} Min. Wann kommt er an?`;a=s+d;c=[a-60,a+60,a+10,a-10,a+5].map(fm);a=fm(a)}
+   else{const d0=rnd(7),n=3+rnd(16);q=`Heute ist ${DAYS[d0]}. Welcher Tag ist in ${n} Tagen?`;a=DAYS[(d0+n)%7];c=DAYS.filter(x=>x!==a)}
+   const opts=new Set([a]);for(const x of shuffle(c))if(opts.size<4&&x!==a)opts.add(x);return{q,a,opts:shuffle([...opts])}}
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';const g=gen();let done=false;const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},g.opts.map(o=>{const b=h('button',{class:'btn opt',style:'font-size:1.15em;min-height:64px'},o);b.onclick=()=>{if(done)return;done=true;
+    if(o===g.a){cor++;b.classList.add('good');st.textContent='Richtig.'}else{b.classList.add('bad');grid.querySelectorAll('button').forEach(x=>{if(x.textContent===g.a)x.classList.add('good')});st.textContent=`Richtig wäre: ${g.a}`}
+    ctx.t(()=>{i++;trial()},o===g.a?1100:2400)};return b}));
+   ctx.root.append(h('div',{class:'card'},h('p',{class:'def',style:'margin:0'},g.q)),grid,st)}
+  trial()}},{id:'gegenteil',dom:'lang',name:'Gegenteile',
+ how:'Ein Wort erscheint. Tippe sein Gegenteil an.',
+ run(ctx){const L=ctx.level,T=ctx.calm?7:10,tier=L<=3?1:L<=6?2:3,nOpt=L<=3?3:L<=7?4:5;let i=0,cor=0;
+  const all=Object.entries(ANT).flatMap(([k,a])=>a.map(x=>({k,w:x[0],o:x[1],t:x[2]})));
+  let pool=all.filter(x=>x.t===tier);if(tier===3)pool=pool.concat(all.filter(x=>x.t===2));
+  const items=freshPick(pool,T,x=>'g:'+x.w);
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';const it=items[i];let done=false;
+   const EXC={schwierig:['leicht'],schwer:['einfach'],nah:['weit'],ehrlich:['falsch'],sparsam:['großzügig','geizig'],großzügig:['sparsam','verschwenderisch'],eng:['fern']}[it.w]||[];const same=all.filter(x=>x.k===it.k&&x.w!==it.w&&x.o!==it.o&&x.o!==it.w&&!EXC.includes(x.o)&&!EXC.includes(x.w));const opts=shuffle([it.o,...sample(same,nOpt-1).map(x=>Math.random()<.5?x.o:x.w)]);
+   const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},opts.map(o=>{const b=h('button',{class:'btn opt',style:'min-height:64px'},o);b.onclick=()=>{if(done)return;done=true;const ok=o===it.o;if(ok){cor++;b.classList.add('good')}else{b.classList.add('bad');grid.querySelectorAll('button').forEach(x=>{if(x.textContent===it.o)x.classList.add('good')})}
+    st.textContent=ok?'Richtig.':`${it.w} ↔ ${it.o}`;ctx.t(()=>{i++;trial()},ok?1000:2200)};return b}));
+   ctx.root.append(h('div',{class:'stage',style:'min-height:130px'},h('div',{class:'stroop',style:'letter-spacing:.02em'},it.w)),h('p',{class:'center muted small'},'Was ist das Gegenteil?'),grid,st)}
+  trial()}},
+{id:'bruecke',dom:'lang',name:'Wortbrücke',
+ how:'Gesucht ist ein Wort, das hinten an das erste und vorne an das zweite passt. Beispiel: Garten + ? und ? + Klinke → Tür (Gartentür, Türklinke).',
+ run(ctx){const L=ctx.level,T=ctx.calm?5:8,nOpt=L<=3?3:L<=7?4:6;const items=freshPick(BRIDGE,T,x=>'b:'+x[3]);let i=0,cor=0;
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';const [mid,l,r,c1,c2]=items[i];let done=false;
+   const opts=shuffle([mid,...sample([...new Set(BRIDGE.map(x=>x[0]))].filter(x=>x!==mid&&x!==l&&x!==r),nOpt-1)]);const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},opts.map(o=>{const b=h('button',{class:'btn opt',style:'min-height:60px'},o);b.onclick=()=>{if(done)return;done=true;const ok=o===mid;if(ok){cor++;b.classList.add('good')}else{b.classList.add('bad');grid.querySelectorAll('button').forEach(x=>{if(x.textContent===mid)x.classList.add('good')})}
+    st.textContent=`${c1} · ${c2}`;ctx.t(()=>{i++;trial()},ok?1400:2600)};return b}));
+   ctx.root.append(h('div',{class:'stage col',style:'min-height:150px;gap:10px'},h('div',{class:'bridge'},l,h('span',{class:'q'},'+ ?')),h('div',{class:'bridge'},h('span',{class:'q'},'? +'),r)),grid,st)}
+  trial()}},
+{id:'drehen',dom:'space',name:'Gedreht oder gespiegelt?',
+ how:L=>L<=2?'Zwei Figuren: Sind sie genau gleich – oder ist die rechte spiegelverkehrt?':'Die rechte Figur ist gedreht. Ist sie dabei gleich geblieben – oder zusätzlich spiegelverkehrt? Dreh sie im Kopf.',
+ run(ctx){const L=ctx.level,N=ctx.calm?8:12,n=Math.min(8,4+Math.floor(L/2));let i=0,cor=0,rts=[],oks=[],t0=0,locked=true,mir=false;
+  const A=h('div'),B=h('div'),stage=h('div',{class:'stage pair'},A,B);
+  const bS=h('button',{class:'btn'},'Gleich'),bM=h('button',{class:'btn'},'Gespiegelt');bS.onclick=()=>ans(false,bS);bM.onclick=()=>ans(true,bM);
+  function next(){if(i>=N)return ctx.finish(cor/N,ctx.calm?'':`Ø ${(avg(rts)/1000).toFixed(1)} s pro Figur`,{slow:slowed(rts),drop:dropped(oks)});ctx.progress(i+1,N);
+   let cs;do cs=polyo(n);while(!chiral(cs));mir=Math.random()<.5;let b=mir?mirP(cs):cs;b=rotN(b,L<=2?0:1+rnd(3));
+   A.innerHTML=shapeSVG(cs,'#7dd3e0',140);B.innerHTML=shapeSVG(b,'#7dd3e0',140);t0=performance.now();locked=false}
+  function ans(v,btn){if(locked)return;locked=true;rts.push(performance.now()-t0);oks.push(v===mir?1:0);if(v===mir){cor++;flash(btn,'good')}else flash(btn,'bad');i++;ctx.t(()=>{A.innerHTML='';B.innerHTML='';ctx.t(next,250)},350)}
+  ctx.root.append(stage,h('div',{class:'row'},bS,bM));ctx.t(next,400)}},
+{id:'muster',dom:'space',name:'Muster nachbauen',
+ how:L=>L>=5?'Ein Muster wird kurz gezeigt. Baue es danach aus dem Gedächtnis auf dem leeren Raster nach.':'Baue das Muster oben auf dem leeren Raster darunter nach. Antippen färbt ein Feld, nochmal antippen macht es wieder leer.',
+ run(ctx){const L=ctx.level,T=ctx.calm?3:4,g=L<=2?3:L<=6?4:5,k=Math.min(g*g-3,3+L),mem=L>=5;let t=0,sum=0;
+  const grid=(cls)=>h('div',{class:'grid '+cls,style:`grid-template-columns:repeat(${g},1fr);max-width:${g*58}px;margin:8px auto`});
+  function trial(){if(t>=T)return ctx.finish(sum/T,`${k} Felder auf ${g}×${g}`);ctx.progress(t+1,T);ctx.root.innerHTML='';
+   const target=new Set(sample([...Array(g*g).keys()],k)),sel=new Set();let done=false;
+   const model=grid('model');for(let c=0;c<g*g;c++)model.append(h('div',{class:'cell'+(target.has(c)?' lit':'')}));
+   const inp=grid('');const cells=[];for(let c=0;c<g*g;c++){const b=h('button',{class:'cell'});b.onclick=()=>{if(done)return;sel.has(c)?sel.delete(c):sel.add(c);b.classList.toggle('lit')};cells.push(b);inp.append(b)}
+   const st=h('p',{class:'center muted small'},''),btn=h('button',{class:'btn primary'},'Fertig');
+   btn.onclick=()=>{if(done){t++;trial();return}done=true;let hit=0,fa=0;cells.forEach((b,c)=>{const on=target.has(c),s=sel.has(c);if(on&&s){hit++;b.classList.add('ok')}else if(on)b.classList.add('miss');else if(s){fa++;b.classList.add('bad')}});
+    sum+=clamp((hit-fa)/k,0,1);st.textContent=hit===k&&!fa?'Genau richtig.':`${hit} von ${k} richtig${fa?`, ${fa} zu viel`:''}. Gestrichelt = fehlte.`;btn.textContent='Weiter';if(mem)ctx.root.prepend(model)};
+   if(!mem){ctx.root.append(model,h('p',{class:'center muted small',style:'margin:0'},'↓ nachbauen ↓'),inp,st,btn)}
+   else{const wait=ctx.calm?5000:Math.max(1800,1500+k*350);ctx.root.append(h('p',{class:'center muted small'},'Präg dir das Muster ein …'),model);
+    ctx.t(()=>{ctx.root.innerHTML='';ctx.root.append(h('p',{class:'center muted small'},'Jetzt aus dem Gedächtnis:'),inp,st,btn)},wait)}}
+  trial()}},
+{id:'suchen',dom:'space',name:'Der Abweichler',
+ how:'Viele gleiche Zeichen – genau eines ist anders gedreht. Tippe es an.',
+ run(ctx){const L=ctx.level,T=ctx.calm?6:10,g=Math.min(7,3+Math.floor((L+1)/2)),dA=L<=3?90:L<=6?45:L<=8?30:20;let i=0,cor=0,rts=[],oks=[];
+  function trial(){if(i>=T)return ctx.finish(cor/T,ctx.calm?'':`Ø ${(avg(rts)/1000).toFixed(1)} s pro Raster`,{slow:slowed(rts),drop:dropped(oks)});ctx.progress(i+1,T);ctx.root.innerHTML='';
+   const base=15*rnd(24),odd=rnd(g*g),ch=pick(['F','R','G','J','L','P']),oa=base+(Math.random()<.5?dA:-dA);let first=true,done=false;const t0=performance.now();
+   const grid=h('div',{class:'grid',style:`grid-template-columns:repeat(${g},1fr);gap:${g>5?4:6}px`});
+   for(let c=0;c<g*g;c++){const b=h('button',{class:'cell',style:`font-size:${g>5?1.1:1.5}em`},h('span',{class:'glyph',style:`transform:rotate(${c===odd?oa:base}deg)`},ch));
+    b.onclick=()=>{if(done)return;if(c===odd){done=true;rts.push(performance.now()-t0);oks.push(first?1:0);if(first)cor++;b.classList.add('lit');ctx.t(()=>{i++;trial()},500)}else{first=false;flash(b,'bad')}};grid.append(b)}
+   ctx.root.append(grid)}
+  ctx.t(trial,300)}},
+{id:'uhr',dom:'space',name:'Uhr lesen',
+ how:L=>'Welche Uhrzeit zeigt die Zeigeruhr? Kurzer dicker Zeiger = Stunden, langer farbiger = Minuten.'+(L>=8?' Diesmal ohne Ziffern.':''),
+ run(ctx){const L=ctx.level,T=ctx.calm?6:8,step=L<=2?30:L<=4?15:L<=6?5:1,nums=L<=7;let i=0,cor=0;
+  const f=(h,m)=>`${((h-1+12)%12)+1}:${String((m+60)%60).padStart(2,'0')}`;
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';
+   const hh=1+rnd(12),mm=step*rnd(60/step),a=f(hh,mm);const c=[f(hh+1,mm),f(hh-1,mm),f(hh,mm+step),f(hh,mm-step),f(hh,mm+5),f(hh,mm-5)];
+   if(mm%5===0)c.unshift(f(mm/5||12,(hh%12)*5));if(mm>=30)c.unshift(f(hh+1,mm));
+   const opts=new Set([a]);for(const x of c)if(opts.size<4&&x!==a)opts.add(x);const ol=shuffle([...opts]);let done=false;const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},ol.map(o=>{const b=h('button',{class:'btn opt',style:'font-size:1.25em;min-height:60px'},o);b.onclick=()=>{if(done)return;done=true;const ok=o===a;if(ok){cor++;b.classList.add('good')}else{b.classList.add('bad');grid.querySelectorAll('button').forEach(x=>{if(x.textContent===a)x.classList.add('good')})}
+    st.textContent=ok?'Richtig.':`Richtig wäre ${a}.`;ctx.t(()=>{i++;trial()},ok?1000:2200)};return b}));
+   ctx.root.append(h('div',{class:'center',html:clockSVG(hh,mm,nums)}),grid,st)}
+  trial()}}
+,{id:'text',dom:'lang',name:'Textverständnis',
+ how:L=>'Lies einen kurzen Text in Ruhe. Danach kommen Fragen dazu: Lückensätze, „Stimmt das?“'+(L>=6?' und eine Reihenfolge.':'.')+(L<=4?' Den Text kannst du bei den Fragen nochmal ansehen.':' Bei den Fragen ist der Text nicht mehr sichtbar.'),
+ run(ctx){const L=ctx.level,peekOK=L<=4||ctx.calm,n=[3,3,4,4,5,5,6,6,7,7][L-1];
+  ctx.root.append(h('div',{class:'stage'},h('p',{class:'muted'},'Text wird geladen …')));
+  loadText().then(t=>{if(!ctx.alive())return;const ss=t.s.slice(0,n),qs=buildQs(ss,L);let qi=0,sum=0;
+   const src=()=>h('p',{class:'small muted',style:'margin:10px 0 0'},'Quelle: ',t.url?h('a',{href:t.url,target:'_blank',rel:'noopener',style:'color:inherit'},`${t.src} – ${t.title}`):`${t.src} – ${t.title}`,t.src==='Wikipedia'?' (CC BY-SA 4.0)':'',t.offline?' · offline, gespeicherter Text':'');
+   const textCard=()=>h('div',{class:'card textcard'},h('h3',{},t.title),...ss.map(s=>h('span',{},s+' ')),src());
+   ctx.root.innerHTML='';ctx.progress(1,qs.length+1);
+   ctx.root.append(textCard(),h('button',{class:'btn primary',onclick:()=>{qi=0;q()}},'Gelesen – zu den Fragen'));
+   function q(){if(qi>=qs.length)return ctx.finish(qs.length?sum/qs.length:0,`${t.src}: ${t.title}`);ctx.progress(qi+2,qs.length+1);ctx.root.innerHTML='';
+    const Q=qs[qi],st=h('div',{class:'center muted',style:'margin-top:6px'},''),next=(ok,ms)=>ctx.t(()=>{qi++;q()},ms||(ok?1100:2600));let done=false;
+    const peek=peekOK?h('details',{class:'peek'},h('summary',{},'Text nochmal ansehen'),textCard()):null;
+    if(Q.k==='gap'){const shown=Q.s.replace(wRe(Q.w),'$1_____');
+     const grid=h('div',{class:'grid2'},Q.opts.map(o=>{const b=h('button',{class:'btn opt'},o);b.onclick=()=>{if(done)return;done=true;const ok=o===Q.w;if(ok){sum++;b.classList.add('good')}else{b.classList.add('bad');grid.querySelectorAll('button').forEach(x=>{if(x.textContent===Q.w)x.classList.add('good')})}st.textContent=ok?'Richtig.':`Im Text stand: ${Q.w}`;next(ok)};return b}));
+     ctx.root.append(h('p',{class:'muted small',style:'margin:0'},'Welches Wort fehlt?'),h('div',{class:'card'},h('p',{class:'def',style:'margin:0'},shown)),grid,st,peek||'')}
+    else if(Q.k==='tf'){const bY=h('button',{class:'btn'},'Stimmt'),bN=h('button',{class:'btn'},'Stimmt nicht');
+     const ans=(v,b)=>{if(done)return;done=true;const ok=v===Q.truth;if(ok){sum++;b.classList.add('good')}else b.classList.add('bad');st.textContent=(ok?'Richtig. ':'')+(Q.truth?'Das stand so im Text.':`Im Text stand: „${Q.orig}“`);next(ok,Q.truth&&ok?1100:3200)};
+     bY.onclick=()=>ans(true,bY);bN.onclick=()=>ans(false,bN);
+     ctx.root.append(h('p',{class:'muted small',style:'margin:0'},'Stimmt das laut Text?'),h('div',{class:'card'},h('p',{class:'def',style:'margin:0'},Q.shown)),h('div',{class:'row'},bY,bN),st,peek||'')}
+    else{let sh=Q.s.slice(),tries=0;do{shuffle(sh);tries++}while(sh.join()===Q.s.join()&&tries<10);let picked=[];const list=h('div',{class:'steps'}),btn=h('button',{class:'btn primary',disabled:true},'Prüfen');
+     const draw=()=>{list.innerHTML='';sh.forEach(s=>{const n=picked.indexOf(s);const b=h('button',{class:'step'+(n>=0?' on':''),style:'font-size:.9em'},h('span',{class:'num'},n>=0?String(n+1):''),h('span',{},s));b.onclick=()=>{if(done)return;if(n>=0)picked=picked.slice(0,n);else picked.push(s);draw()};list.append(b)});btn.disabled=picked.length!==Q.s.length};
+     btn.onclick=()=>{if(done){qi++;q();return}done=true;const c=Q.s.filter((s,j)=>picked[j]===s).length;sum+=c/Q.s.length;[...list.children].forEach((el,j)=>el.classList.add(picked.indexOf(sh[j])===Q.s.indexOf(sh[j])?'good':'bad'));st.textContent=c===Q.s.length?'Richtige Reihenfolge.':`${c} von ${Q.s.length} an der richtigen Stelle.`;btn.textContent='Weiter'};
+     ctx.root.append(h('p',{class:'muted small',style:'margin:0'},'In welcher Reihenfolge standen diese Sätze im Text?'),list,st,h('div',{style:'height:8px'}),btn);draw()}}
+  })}}
+,{id:'kopfrechnen',dom:'math',name:'Kopfrechnen',
+ how:'Rechne im Kopf und tippe das Ergebnis ein. Kein Zeitdruck – genau ist wichtiger als schnell.',
+ run(ctx){const L=ctx.level,N=ctx.calm?7:10;let i=0,cor=0,rts=[],oks=[],t0=0,cur=null,inp='',active=false;
+  const q=h('div',{class:'stroop',style:'font-size:2em'}),typed=h('div',{class:'typed'}),st=h('p',{class:'center muted',style:'min-height:1.5em'}),pad=h('div',{class:'kpad'});
+  ['1','2','3','4','5','6','7','8','9','⌫','0','OK'].forEach(k=>pad.append(h('button',{class:'btn'+(k==='OK'?' primary':''),onclick:()=>key(k)},k)));
+  function gen(){let a,b,op,ans,text;
+   if(L<=2){op=pick(['+','−']);if(op==='+'){a=rr(2,12);b=rr(2,20-a)}else{a=rr(6,20);b=rr(1,a-2)}}
+   else if(L<=4){op=pick(['+','−']);if(op==='+'){a=rr(12,70);b=rr(8,99-a)}else{a=rr(30,99);b=rr(8,a-5)}}
+   else if(L<=6){op=pick(['+','−','×']);if(op==='×'){a=rr(2,9);b=rr(2,10)}else if(op==='+'){a=rr(25,180);b=rr(15,120)}else{a=rr(60,250);b=rr(15,a-10)}}
+   else if(L<=8){op=pick(['×','÷','+','−']);if(op==='×'){a=rr(3,12);b=rr(3,12)}else if(op==='÷'){b=rr(2,9);a=b*rr(2,12)}else if(op==='+'){a=rr(120,900);b=rr(45,400)}else{a=rr(300,999);b=rr(45,a-50)}}
+   else{const x=rr(2,9),y=rr(3,9),c=rr(5,40);if(Math.random()<.5){text=`${x} × ${y} + ${c}`;ans=x*y+c}else{text=`${x*y} ÷ ${x} + ${c}`;ans=y+c}return{text,ans}}
+   ans=op==='+'?a+b:op==='−'?a-b:op==='×'?a*b:a/b;return{text:`${a} ${op} ${b}`,ans}}
+  const drawT=()=>{typed.innerHTML='';typed.append(h('span',{style:'width:auto;min-width:120px;padding:0 14px'},inp||' '))};
+  function next(){if(i>=N)return ctx.finish(cor/N,'',{slow:slowed(rts),drop:dropped(oks)});ctx.progress(i+1,N);cur=gen();q.textContent=cur.text+' = ?';inp='';drawT();st.textContent='';active=true;t0=performance.now()}
+  function key(k){if(!active)return;if(k==='⌫')inp=inp.slice(0,-1);else if(k==='OK'){if(!inp){flash(typed,'shake');return}return check()}else if(inp.length<5)inp+=k;drawT()}
+  function check(){active=false;rts.push(performance.now()-t0);const ok=+inp===cur.ans;oks.push(ok?1:0);if(ok)cor++;st.textContent=ok?'Richtig.':`Richtig wäre ${cur.ans}.`;i++;ctx.t(next,ok?900:2000)}
+  ctx.root.append(h('div',{class:'stage',style:'min-height:130px'},q),typed,st,pad);next()}},
+{id:'werte',dom:'math',name:'Werte vergleichen',
+ how:L=>L>=7?'Zwei Angebote: Welches ist pro Stück günstiger? Tippe es an.':'Zwei Werte – tippe den größeren an.',
+ run(ctx){const L=ctx.level,N=ctx.calm?7:10;let i=0,cor=0,rts=[],oks=[],t0=0,ans=0,locked=true;
+  const qL=h('p',{class:'center',style:'margin:4px 0 8px'}),A=h('button',{class:'btn opt',style:'min-height:110px;font-size:1.25em'}),B=h('button',{class:'btn opt',style:'min-height:110px;font-size:1.25em'});
+  A.onclick=()=>pickA(0,A);B.onclick=()=>pickA(1,B);
+  function gen(){let q,a,b,va,vb;const t=L<=2?0:L<=4?pick([1,2]):L<=6?pick([2,3]):pick([3,4,4]);
+   if(t===0){va=rr(10,999);vb=va+(rnd(2)?1:-1)*rr(1,60);if(vb<1)vb=va+7;a=String(va);b=String(vb);q='Welche Zahl ist größer?'}
+   else if(t===1){va=rr(100,999);const d=String(va).padStart(3,'0');vb=+(d[0]+d[2]+d[1]);if(vb===va)vb=va+rr(5,90);a=eur(va);b=eur(vb);q='Was ist mehr Geld?'}
+   else if(t===2){const x=rr(12,60),y=rr(8,40),u=rr(12,60),v=rr(8,40);va=x+y;vb=u+v;if(va===vb)vb++;a=`${x} + ${y}`;b=`${u} + ${vb-u}`;q='Was ergibt mehr?'}
+   else if(t===3){const x=rr(3,9),y=rr(3,9);let u=rr(3,9),v=rr(3,9);va=x*y;vb=u*v;if(va===vb){v++;vb=u*v}a=`${x} × ${y}`;b=`${u} × ${v}`;q='Was ergibt mehr?'}
+   else{const it=pick([['Rollen Klopapier',20,60],['Joghurts',25,70],['Eier',20,45],['Brötchen',25,60],['Flaschen Wasser',15,60]]);let q1=rr(2,6),q2=rr(4,12);if(q2===q1)q2++;
+    const u1=rr(it[1],it[2]),f=1+(rnd(2)?1:-1)*(.08+Math.random()*.25),p1=Math.round(u1*q1/5)*5,p2=Math.round(u1*f*q2/5)*5;
+    va=-p1/q1;vb=-p2/q2;if(Math.abs(va-vb)/Math.abs(va)<.04)return gen();a=`${q1} ${it[0]}\n${eur(p1)}`;b=`${q2} ${it[0]}\n${eur(p2)}`;q='Was ist pro Stück günstiger?'}
+   return{q,a,b,ans:va>vb?0:1}}
+  function next(){if(i>=N)return ctx.finish(cor/N,'',{slow:slowed(rts),drop:dropped(oks)});ctx.progress(i+1,N);const g=gen();qL.textContent=g.q;A.textContent=g.a;B.textContent=g.b;A.style.whiteSpace=B.style.whiteSpace='pre-line';ans=g.ans;A.className=B.className='btn opt';t0=performance.now();locked=false}
+  function pickA(v,b){if(locked)return;locked=true;rts.push(performance.now()-t0);const ok=v===ans;oks.push(ok?1:0);if(ok)cor++;b.classList.add(ok?'good':'bad');if(!ok)(ans===0?A:B).classList.add('good');i++;ctx.t(next,ok?700:1800)}
+  ctx.root.append(qL,h('div',{class:'grid2'},A,B));next()}},
+{id:'schwerste',dom:'plan',name:'Das schwerste Objekt',
+ how:'Die Waagen zeigen, was schwerer ist (die tiefere Seite). Finde daraus heraus, was am schwersten – oder am leichtesten – ist.',
+ run(ctx){const L=ctx.level,T=ctx.calm?5:8,n=L<=2?3:L<=5?4:L<=8?5:6;let i=0,cor=0;
+  function trial(){if(i>=T)return ctx.finish(cor/T,`${n} Gegenstände`);ctx.progress(i+1,T);ctx.root.innerHTML='';
+   const order=sample(HEAVY,n);const clues=shuffle(order.slice(0,-1).map((o,k)=>[o,order[k+1]]));const askHeavy=L<5||Math.random()<.5,target=askHeavy?order[0]:order[n-1];let done=false;
+   const st=h('p',{class:'center muted'},'');
+   const opts=h('div',{class:'grid2',style:'grid-template-columns:repeat(3,1fr)'},shuffle(order.slice()).map(o=>{const b=h('button',{class:'btn opt',style:'font-size:2em;min-height:70px'},o);b.onclick=()=>{if(done)return;done=true;const ok=o===target;if(ok){cor++;b.classList.add('good')}else{b.classList.add('bad');opts.querySelectorAll('button').forEach(x=>{if(x.textContent===target)x.classList.add('good')})}
+    st.textContent=(ok?'Richtig. ':'')+'Reihenfolge: '+order.join(' > ');ctx.t(()=>{i++;trial()},ok?1500:3000)};return b}));
+   ctx.root.append(h('div',{class:'card',style:'display:flex;flex-wrap:wrap;justify-content:center;gap:4px'},clues.map(([hv,lt])=>h('div',{html:balanceSVG(hv,lt,Math.random()<.5)}))),
+    h('p',{class:'center',style:'font-weight:700'},askHeavy?'Was ist am SCHWERSTEN?':'Was ist am LEICHTESTEN?'),opts,st)}
+  trial()}},
+{id:'quallen',dom:'conc',name:'Folge den Quallen',
+ how:'Einige Quallen leuchten kurz auf. Dann sehen alle gleich aus und schwimmen durcheinander. Behalte die markierten im Blick und tippe sie am Ende an.',
+ run(ctx){const L=ctx.level,T=ctx.calm?3:4,n=Math.min(10,5+Math.floor(L/2)),k=Math.min(4,2+Math.floor(L/4)),sp=ctx.calm?25+L*4:40+L*9,dur=ctx.calm?5000:5000+L*350;let t=0,sum=0;
+  const cv=h('canvas',{style:'width:100%;height:330px;border-radius:22px;border:2px solid var(--line);background:var(--card);touch-action:none;display:block'});const st=h('p',{class:'center muted',style:'min-height:1.5em'}),btn=h('button',{class:'btn primary',style:'display:none'},'Weiter');
+  ctx.root.append(cv,st,btn);const g=cv.getContext('2d');let W=0,H=0;
+  function size(){const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;g.setTransform(d,0,0,d,0,0)}
+  let J=[],phase='',sel=[];
+  function draw(){g.clearRect(0,0,W,H);for(const j of J){const tgt=phase==='show'&&j.t,res=phase==='res';let col='#c3a6ff';if(tgt)col='#f2c27b';if(res&&j.t)col=sel.includes(j)?'#7fd1a8':'#f2c27b';if(res&&!j.t&&sel.includes(j))col='#e8a0a0';
+   g.fillStyle=col;g.beginPath();g.arc(j.x,j.y,17,Math.PI,0);g.lineTo(j.x+17,j.y+4);g.lineTo(j.x-17,j.y+4);g.fill();g.strokeStyle=col;g.lineWidth=2.5;for(let q=-2;q<=2;q++){g.beginPath();g.moveTo(j.x+q*6,j.y+4);g.quadraticCurveTo(j.x+q*6+Math.sin(j.ph+q)*4,j.y+14,j.x+q*6,j.y+22);g.stroke()}
+   if((phase==='pick'&&sel.includes(j))||(res&&j.t&&!sel.includes(j))){g.strokeStyle=res?'#7fd1a8':'#ecebf5';g.setLineDash(res?[5,4]:[]);g.lineWidth=3;g.beginPath();g.arc(j.x,j.y+4,26,0,7);g.stroke();g.setLineDash([])}}}
+  function trial(){if(t>=T)return ctx.finish(sum/T,`${k} von ${n} Quallen verfolgen`);ctx.progress(t+1,T);size();btn.style.display='none';sel=[];
+   J=Array.from({length:n},(_,q)=>{const a=Math.random()*6.28;return{x:30+Math.random()*(W-60),y:30+Math.random()*(H-70),vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,ph:Math.random()*6,t:q<k}});
+   phase='show';st.textContent=`Merk dir die ${k} gelben Quallen …`;draw();
+   ctx.t(()=>{phase='move';st.textContent='Im Blick behalten …';let last=performance.now();const end=last+dur;
+    const step=now=>{if(!ctx.alive())return;const dt=Math.min(.05,(now-last)/1000);last=now;for(const j of J){j.x+=j.vx*dt;j.y+=j.vy*dt;j.ph+=dt*4;if(j.x<22||j.x>W-22){j.vx*=-1;j.x=clamp(j.x,22,W-22)}if(j.y<22||j.y>H-34){j.vy*=-1;j.y=clamp(j.y,22,H-34)}if(Math.random()<.01){const a=Math.atan2(j.vy,j.vx)+(Math.random()-.5);j.vx=Math.cos(a)*sp;j.vy=Math.sin(a)*sp}}
+     draw();if(now<end)requestAnimationFrame(step);else{phase='pick';st.textContent=`Tippe die ${k} markierten Quallen an.`;draw()}};requestAnimationFrame(step)},ctx.calm?3200:2200)}
+  cv.addEventListener('pointerdown',e=>{if(phase!=='pick')return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=null,bd=1e9;for(const j of J){const d=Math.hypot(j.x-x,j.y+4-y);if(d<bd){bd=d;best=j}}
+   if(!best||bd>36)return;if(sel.includes(best))sel=sel.filter(s=>s!==best);else sel.push(best);draw();
+   if(sel.length===k){phase='res';const hit=sel.filter(s=>s.t).length;sum+=hit/k;st.textContent=hit===k?'Alle richtig verfolgt.':`${hit} von ${k} richtig. Gestrichelt = die gesuchten.`;draw();btn.style.display='';}});
+  btn.onclick=()=>{t++;trial()};
+  ctx.t(trial,50)}},
+{id:'memory',dom:'mem',name:'Paare merken',
+ how:'Decke immer zwei Karten auf. Findest du ein Paar, bleibt es offen. Merk dir, wo welches Bild liegt.',
+ run(ctx){const L=ctx.level,pairs=Math.max(3,[3,4,4,5,6,6,7,8,9,10][L-1]-(ctx.calm?1:0)),cols=pairs*2<=8?4:pairs*2<=12?4:5;
+  const cards=shuffle(sample(MEMO,pairs).flatMap(e=>[e,e]));let open=[],found=0,moves=0,lock=false;ctx.progress(0,pairs);
+  const st=h('p',{class:'center muted'},'Züge: 0');const grid=h('div',{class:'grid',style:`grid-template-columns:repeat(${cols},1fr)`});
+  cards.forEach((e,idx)=>{const c=h('button',{class:'cell memo'},'');c.onclick=()=>{if(lock||c.classList.contains('lit')||c.classList.contains('ok')||open.includes(c))return;c.textContent=e;c.classList.add('lit');open.push(c);
+   if(open.length===2){moves++;st.textContent=`Züge: ${moves}`;const [a,b]=open;if(a.textContent===b.textContent){a.classList.replace('lit','ok');b.classList.replace('lit','ok');open=[];found++;ctx.progress(found,pairs);if(found===pairs)ctx.t(()=>ctx.finish(clamp(1.5*pairs/moves,0,1),`${moves} Züge für ${pairs} Paare`),700)}
+    else{lock=true;ctx.t(()=>{a.textContent='';b.textContent='';a.classList.remove('lit');b.classList.remove('lit');open=[];lock=false},ctx.calm?1400:950)}}};grid.append(c)});
+  ctx.root.append(grid,st)}},
+{id:'kisten',dom:'space',name:'Kisten zählen',
+ how:'Wie viele Kisten sind es insgesamt? Denk an die verdeckten Kisten unter den sichtbaren – keine Kiste schwebt.',
+ run(ctx){const L=ctx.level,T=ctx.calm?5:8,cols=L<=2?2:L<=5?3:4,rows=L<=3?2:3,mh=L<=2?2:L<=6?3:4;let i=0,cor=0;
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';
+   const hm=Array.from({length:rows},()=>Array(cols).fill(0));for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){if(!x&&!y){hm[0][0]=mh;continue}const cap=Math.min(y?hm[y-1][x]:mh,x?hm[y][x-1]:mh);hm[y][x]=Math.max(0,cap-(Math.random()<.5?0:Math.random()<.75?1:2))}const total=hm.flat().reduce((a,b)=>a+b,0);
+   const opts=new Set([total]);for(const d of shuffle([1,-1,2,-2,3,-3]))if(opts.size<4&&total+d>0)opts.add(total+d);let done=false;const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},shuffle([...opts]).map(o=>{const b=h('button',{class:'btn opt',style:'font-size:1.4em;min-height:60px'},String(o));b.onclick=()=>{if(done)return;done=true;const ok=o===total;if(ok){cor++;b.classList.add('good')}else{b.classList.add('bad');grid.querySelectorAll('button').forEach(x=>{if(+x.textContent===total)x.classList.add('good')})}
+    st.textContent=ok?'Richtig.':`Es sind ${total} Kisten.`;ctx.t(()=>{i++;trial()},ok?1000:2400)};return b}));
+   ctx.root.append(h('div',{class:'stage',html:cubesSVG(hm,cols,rows)}),grid,st)}
+  trial()}},
+{id:'kategorien',dom:'lang',name:'Kategorien nennen',
+ how:L=>'Schreib so viele passende Wörter auf, wie dir einfallen. Jedes Wort mit Enter oder „+“ bestätigen. Zwei Runden.'+(L>=6?' In Runde 2 geht es um Wörter mit einem bestimmten Anfangsbuchstaben.':''),
+ run(ctx){const L=ctx.level,R=2,sec=ctx.calm?60:45,target=5+Math.floor(L/2);let r=0,sum=0,tot=0;
+  const BIG={'Tiere':['Kuh','Pferd','Schwein','Schaf','Ziege','Huhn','Ente','Gans','Esel','Löwe','Tiger','Elefant','Giraffe','Affe','Bär','Maus','Ratte','Frosch','Schlange',...CATS['Haustiere'],...CATS['Wildtiere'],...CATS['Vögel'],...CATS['Fische'],...CATS['Insekten'],...CATS['Meerestiere']],'Obst':CATS['Obst'],'Gemüse':CATS['Gemüse'],'Kleidung':CATS['Kleidung'],'Berufe':CATS['Berufe'],'Dinge in der Küche':CATS['Küche'],'Fahrzeuge':CATS['Fahrzeuge'],'Sportarten':CATS['Sportarten'],'Getränke':CATS['Getränke'],'Möbel':CATS['Möbel'],'Länder':CATS['Länder'],'Musikinstrumente':CATS['Instrumente'],'Blumen und Bäume':[...CATS['Blumen'],...CATS['Bäume']],'Süßigkeiten':CATS['Süßigkeiten']};
+  const cats=sample(Object.keys(BIG),2);
+  function round(){if(r>=R)return ctx.finish(sum/R,`${tot} Wörter`);ctx.progress(r+1,R);ctx.root.innerHTML='';
+   const letter=L>=6&&r===1?pick('BFGHKLMPRST'.split('')):null,cat=letter?null:cats[r],known=cat?BIG[cat].map(norm):[];const got=[];let running=true;
+   const list=h('div',{class:'wchips'}),cnt=h('span',{},'0'),tl=h('span',{class:'muted small'},ctx.calm?'':`${sec} s`),inp=h('input',{class:'inp',type:'text',autocomplete:'off',autocapitalize:'words',spellcheck:'false',placeholder:'Wort …'});
+   const add=()=>{if(!running)return;const w=inp.value.trim();inp.value='';if(w.length<3)return;const nw=norm(w);
+    if(got.some(g=>norm(g)===nw)){flash(inp,'shake');return}if(letter&&nw[0]!==norm(letter)){flash(inp,'bad');return}got.push(w);
+    list.prepend(h('span',{class:'chip'+(known.includes(nw)?' on':'')},w));cnt.textContent=String(got.length)};
+   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add()}});
+   const end=Date.now()+sec*1000;const tick=()=>{if(!running)return;const left=Math.ceil((end-Date.now())/1000);if(!ctx.calm)tl.textContent=`${Math.max(0,left)} s`;if(left<=0)return stop();ctx.t(tick,500)};
+   const btn=h('button',{class:'btn ghost',onclick:()=>stop()},'Mir fällt nichts mehr ein');
+   function stop(){if(!running)return;running=false;inp.disabled=true;sum+=Math.min(1,got.length/target);tot+=got.length;btn.textContent='Weiter';btn.className='btn primary';btn.onclick=()=>{r++;round()};
+    ctx.root.insertBefore(h('p',{class:'center'},`${got.length} Wörter.`+(cat?` Hervorgehoben = sicher erkannt; die anderen zählen auch.`:'')),list)}
+   ctx.root.append(h('div',{class:'card center'},h('p',{class:'muted small',style:'margin:0'},letter?'Wörter mit dem Anfangsbuchstaben':'Kategorie'),h('div',{class:'stroop',style:'font-size:1.8em;margin:4px 0'},letter||cat),h('div',{class:'row between small'},h('span',{},'Gefunden: ',cnt),tl)),
+    h('div',{class:'row'},inp,h('button',{class:'btn primary',style:'flex:none;width:58px',onclick:()=>{add();inp.focus()}},'+')),list,btn);
+   setTimeout(()=>inp.focus(),80);ctx.t(tick,500)}
+  round()}},
+{id:'puzzle',dom:'space',name:'Puzzle-Teil',
+ how:L=>'Im Brett fehlt ein Stück. Welches Teil füllt die Lücke genau aus?'+(L>=4?' Die Teile sind gedreht – drehen ist erlaubt, umdrehen (spiegeln) nicht.':''),
+ run(ctx){const L=ctx.level,T=ctx.calm?4:6,k=L<=2?3:L<=4?4:L<=7?5:6,cols=L<=4?5:6,rows=L<=4?4:5;let i=0,cor=0;
+  function trial(){if(i>=T)return ctx.finish(cor/T,'');ctx.progress(i+1,T);ctx.root.innerHTML='';
+   let pc;do pc=normP(polyo(k));while(Math.max(...pc.map(c=>c[0]))>=cols||Math.max(...pc.map(c=>c[1]))>=rows);
+   const pw=Math.max(...pc.map(c=>c[0]))+1,ph=Math.max(...pc.map(c=>c[1]))+1,ox=rnd(cols-pw+1),oy=rnd(rows-ph+1),gap=new Set(pc.map(([x,y])=>(x+ox)+','+(y+oy)));
+   const filled=new Set();for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(!gap.has(x+','+y))filled.add(x+','+y);
+   const cR=canonRot(pc),cA=canonAll(pc),useMir=L>=6&&canonRot(mirP(pc))!==cR,ds=[];if(useMir)ds.push(mirP(pc));let guard=0;
+   while(ds.length<3&&guard++<200){const d=polyo(k);const c=L>=6?canonRot(d):canonAll(d);if(c!==(L>=6?cR:cA)&&!ds.some(x=>(L>=6?canonRot(x):canonAll(x))===c))ds.push(d)}
+   const rot=cs=>L>=4?rotN(cs,rnd(4)):cs;const opts=shuffle([{cs:rot(pc),ok:true},...ds.map(d=>({cs:rot(d),ok:false}))]);let done=false;const st=h('p',{class:'center muted'},'');
+   const grid=h('div',{class:'grid2'},opts.map(o=>{const b=h('button',{class:'btn opt',style:'min-height:96px;display:flex;align-items:center;justify-content:center',html:shapeSVG(o.cs,'#f2c27b',80)});b.onclick=()=>{if(done)return;done=true;if(o.ok){cor++;b.classList.add('good');st.textContent='Passt.'}else{b.classList.add('bad');grid.querySelectorAll('button').forEach((x,j)=>{if(opts[j].ok)x.classList.add('good')});st.textContent='Das grün markierte Teil passt.'}ctx.t(()=>{i++;trial()},o.ok?1000:2400)};return b}));
+   ctx.root.append(h('div',{class:'stage',html:gridSVG(cols,rows,filled,'#7dd3e0')}),grid,st)}
+  trial()}}
+,{id:'tonhalte',dom:'speak',name:'Ton halten',
+ how:L=>`Atme tief ein und halte dann einen Vokal – „aaa“, später „ooo“ und „mmm“ – so lange es angenehm geht. Normale Lautstärke, nicht pressen, Ton ruhig halten. Richtwert auf Stufe ${L}: ${[6,8,10,12,14,16,18,20,22,25][L-1]} Sekunden. Mikrofon nötig, am besten in ruhiger Umgebung.`,
+ run(ctx){const L=ctx.level,TR=ctx.calm?2:3,target=[6,8,10,12,14,16,18,20,22,25][L-1],rest=ctx.calm?30:20,VOW=['aaa','ooo','mmm'];let mic=null,tr=0,res=[];
+  const big=h('div',{class:'digit'},'0,0'),meter=h('div',{class:'bar',style:'height:14px;margin-top:10px'},h('i',{style:'transition:none'})),st=h('p',{class:'center',style:'min-height:3em'},'Wenn du bereit bist, tippe auf Start. Das Handy darf auf dem Tisch liegen.'),
+   btn=h('button',{class:'btn primary'},'Start'),aux=h('div',{class:'stack'}),log=h('ul',{class:'list-clean small',style:'margin-top:8px'});
+  const skip=h('button',{class:'btn ghost small'},'Jetzt nicht – überspringen');skip.onclick=()=>ctx.finish(0,'',{skipped:true});
+  ctx.cleanup(()=>{if(mic)mic.close()});
+  ctx.root.append(h('div',{class:'stage col',style:'gap:2px;min-height:170px'},big,h('div',{class:'muted small'},`Sekunden · Richtwert ${target} s`)),meter,st,btn,aux,log,skip);
+  btn.onclick=async()=>{btn.disabled=true;try{if(!mic)mic=await openMic()}catch(e){st.textContent='Kein Zugriff aufs Mikrofon. Bitte im Browser erlauben – oder die Übung überspringen.';btn.disabled=false;return}btn.style.display='none';attempt()};
+  const setM=v=>{meter.firstChild.style.width=Math.min(100,v)+'%'};
+  function attempt(){ctx.progress(tr+1,TR);big.textContent='0,0';st.textContent='Kurz still sein – ich messe die Umgebung …';const fl=[],t0=performance.now();
+   const cal=()=>{if(!ctx.alive())return;const r=mic.rms();fl.push(r);setM(r*400);if(performance.now()-t0<1300)return requestAnimationFrame(cal);go(Math.max(median(fl)*3.5,.012))};requestAnimationFrame(cal)}
+  function go(thr){const v=VOW[tr%VOW.length];st.innerHTML='';st.append('Tief einatmen … und dann ',h('b',{style:'font-size:1.3em'},`„${v}“`),' halten.');
+   let state='wait',start=0,last=0,a0=0;const vals=[],ws=performance.now();
+   const loop=now=>{if(!ctx.alive())return;const r=mic.rms();setM(r/thr*30);
+    if(state==='wait'){if(r>thr){if(!a0)a0=now;if(now-a0>150){state='on';start=a0;last=now}}else a0=0;
+     if(now-ws>15000){st.textContent='Ich habe nichts gehört.';aux.innerHTML='';aux.append(h('button',{class:'btn',onclick:()=>{aux.innerHTML='';go(thr)}},'Nochmal'));return}}
+    else{if(r>thr*.7){last=now;vals.push(r)}big.textContent=fmtS((now-start)/1000);if(now-last>450)return done((last-start)/1000,vals,v)}
+    requestAnimationFrame(loop)};requestAnimationFrame(loop)}
+  function done(d,vals,v){setM(0);const m=avg(vals),sd=Math.sqrt(avg(vals.map(x=>(x-m)**2))),cv=m?sd/m:0;res.push(d);big.textContent=fmtS(d);
+   log.append(h('li',{},h('span',{},`Versuch ${tr+1} („${v}“): ${fmtS(d)} s`),h('span',{class:'muted'},cv<.25?'Ton gleichmäßig':cv<.45?'etwas schwankend':'schwankend')));tr++;
+   if(tr>=TR){const best=Math.max(...res);mic.close();mic=null;return ctx.t(()=>ctx.finish(Math.min(1,best/target),`Bestwert ${fmtS(best)} s · Versuche ${res.map(fmtS).join(' / ')} s`,{mpt:best}),900)}
+   let left=rest;st.textContent=`Pause – ganz normal weiteratmen. ${left} s`;aux.innerHTML='';const nb=h('button',{class:'btn'},'Pause überspringen');aux.append(nb);
+   const tick=()=>{left--;if(left<=0){aux.innerHTML='';return attempt()}st.textContent=`Pause – ganz normal weiteratmen. ${left} s`;pt=ctx.t(tick,1000)};let pt=ctx.t(tick,1000);
+   nb.onclick=()=>{ctx.clear(pt);aux.innerHTML='';attempt()}}}},
+{id:'woerterlesen',dom:'speak',name:'Wörter vorlesen',
+ how:L=>(SRC?'Lies jedes Wort deutlich laut vor. Die Spracherkennung hört mit – wird das Wort verstanden, geht es weiter.':'Lies jedes Wort deutlich laut vor und schätze danach selbst ein, wie es ging. (Dieser Browser hat keine Spracherkennung.)')+(L>=7?' Jetzt mit schwierigen Wörtern.':''),
+ run(ctx){const L=ctx.level,N=ctx.calm?6:8,pool=L<=3?WORDS.filter(w=>w[2]===1).map(w=>w[0]):L<=6?[...WORDS.filter(w=>w[2]===2).map(w=>w[0]),...BRIDGE.map(b=>b[3])]:HARDW,items=freshPick(pool,N,x=>'r:'+x);
+  const word=h('div',{class:'stroop',style:'font-size:2.1em;letter-spacing:.01em;text-align:center;line-height:1.2'}),heard=h('p',{class:'center muted small',style:'min-height:1.4em'}),st=h('p',{class:'center',style:'min-height:1.5em'}),row=h('div',{class:'row'});
+  let i=0,sum=0,tries=0,cur=null,tm=null,got=false,rec=null;
+  if(SRC){rec=makeRec(txt=>{heard.textContent='Gehört: „'+txt.split(/\s+/).slice(-3).join(' ')+'“';if(!got&&cur&&matchSeq(cur.split(' '),txt.split(/\s+/).slice(-8).join(' ')).every(Boolean))hit()},()=>{rec=null;ctx.clear(tm);toast('Spracherkennung nicht verfügbar – Selbsteinschätzung');if(cur)show()});ctx.cleanup(()=>rec&&rec.end())}
+  function show(){if(i>=N){rec&&rec.end();return ctx.finish(sum/N,`${N} Wörter`)}ctx.progress(i+1,N);cur=items[i];got=false;tries=0;word.textContent=cur;word.style.color='';heard.textContent='';row.innerHTML='';
+   if(rec){rec.reset();st.textContent='Lies das Wort laut vor.';tm=ctx.t(miss,7000)}
+   else{st.textContent='Lies das Wort laut vor. Wie ging es?';[['Deutlich',1],['Ging so',.6],['Schwer',.2]].forEach(([l,v])=>row.append(h('button',{class:'btn',onclick:()=>{sum+=v;i++;show()}},l)))}}
+  function hit(){got=true;ctx.clear(tm);row.innerHTML='';sum+=tries?.7:1;word.style.color='var(--ok)';st.textContent='Verstanden.';ctx.t(()=>{i++;show()},900)}
+  function miss(){if(got)return;st.textContent='Nicht sicher verstanden.';row.innerHTML='';
+   row.append(h('button',{class:'btn',onclick:()=>{tries++;row.innerHTML='';if(!rec)return show();rec.reset();st.textContent='Nochmal laut vorlesen.';tm=ctx.t(miss,7000)}},'Nochmal'),h('button',{class:'btn',onclick:()=>{ctx.clear(tm);i++;show()}},'Weiter'))}
+  const go=h('button',{class:'btn primary'},SRC?'Mikrofon starten':'Los');go.onclick=()=>{go.remove();if(rec)rec.begin();show()};
+  ctx.root.append(h('div',{class:'stage',style:'min-height:170px;padding:12px'},word),heard,st,row,go,h('button',{class:'btn ghost small',style:'margin-top:10px',onclick:()=>ctx.finish(0,'',{skipped:true})},'Jetzt nicht – überspringen'))}},
+{id:'vorlesen',dom:'speak',name:'Text vorlesen',
+ how:L=>(L<=3?'Lies einzelne Sätze laut vor.':'Lies einen kurzen Text laut vor.')+' In deinem Tempo. '+(SRC?'Die Spracherkennung markiert mit, was sie verstanden hat.':'Danach schätzt du selbst ein, wie es lief.'),
+ run(ctx){const L=ctx.level,R=L<=3?3:L<=5?2:1,n=[1,1,1,2,2,3,4,5,6,7][L-1];let r=0,sum=0,wpms=[],src='';
+  ctx.root.append(h('div',{class:'stage'},h('p',{class:'muted'},'Text wird geladen …')));
+  loadText().then(t=>{if(!ctx.alive())return;src=`${t.src}: ${t.title}`;let pos=rnd(Math.max(1,t.s.length-n*R+1));let rec=null;ctx.cleanup(()=>rec&&rec.end());
+   function round(){if(r>=R)return ctx.finish(sum/R,(ctx.calm||!wpms.length?'':`Ø ${Math.round(avg(wpms))} Wörter pro Minute · `)+src);ctx.progress(r+1,R);ctx.root.innerHTML='';
+    const ss=[];for(let k=0;k<n;k++)ss.push(t.s[(pos+k)%t.s.length]);pos+=n;const toks=ss.join(' ').split(/\s+/).filter(Boolean),spans=toks.map(w=>h('span',{class:'rw'},w+' '));
+    const st=h('p',{class:'center muted',style:'min-height:1.5em'},''),btn=h('button',{class:'btn primary'},SRC?'Vorlesen starten':'Start'),row=h('div',{class:'row'});let t0=0,flags=toks.map(()=>false),running=false;
+    if(SRC){rec=makeRec(txt=>{flags=matchSeq(toks,txt);spans.forEach((s,k)=>s.classList.toggle('ok',flags[k]))},()=>{rec=null;st.textContent='Spracherkennung nicht erlaubt – Selbsteinschätzung.'})}
+    btn.onclick=()=>{if(!running){running=true;t0=Date.now();if(rec)rec.begin();btn.textContent='Fertig';st.textContent=rec?'Lies vor … grün = verstanden.':'Lies vor und tippe dann auf Fertig.';return}
+     running=false;rec&&rec.end();const sec=(Date.now()-t0)/1000,wpm=toks.length/(sec/60);if(sec>2)wpms.push(wpm);btn.remove();
+     const fin=frac=>{sum+=frac;row.innerHTML='';st.textContent=(rec?`${Math.round(frac*100)} % verstanden`:'')+(ctx.calm?'':`${rec?' · ':''}${Math.round(wpm)} Wörter pro Minute`);row.append(h('button',{class:'btn primary',onclick:()=>{r++;round()}},'Weiter'))};
+     if(rec)ctx.t(()=>{spans.forEach((s,k)=>{if(!flags[k])s.classList.add('miss')});fin(flags.filter(Boolean).length/toks.length)},700);
+     else{st.textContent='Wie flüssig ging es?';[['Flüssig',1],['Mit Stockern',.6],['Schwer',.25]].forEach(([l,v])=>row.append(h('button',{class:'btn',onclick:()=>fin(v)},l)))}};
+    ctx.root.append(h('div',{class:'card textcard',style:'font-size:1.15em'},...spans),st,row,btn,h('p',{class:'small muted',style:'margin-top:10px'},`Quelle: ${src}`))}
+   round()})}}
+
+];
+const AUFTRAG={id:'auftrag',dom:'mem',name:'Mitnehm-Auftrag'};
+const EXM=Object.fromEntries([...EX,AUFTRAG].map(e=>[e.id,e]));
+const howText=(ex,L)=>typeof ex.how==='function'?ex.how(L):ex.how;
+
+/* ================= Übungs-Laufzeit ================= */
+let curCtx=null;
+function makeCtx(root,level,onDone){const timers=new Set(),cleans=[];let alive=true;const runC=()=>{cleans.splice(0).forEach(f=>{try{f()}catch(e){}})};
+ const ctx={root,level,progress(){},alive:()=>alive,
+  t(fn,ms){const id=setTimeout(()=>{timers.delete(id);if(alive)fn()},ms);timers.add(id);return id},
+  clear(id){clearTimeout(id);timers.delete(id)},
+  cleanup(f){cleans.push(f)},
+  finish(acc,detail,extra){if(!alive)return;alive=false;timers.forEach(clearTimeout);timers.clear();runC();onDone({...(extra||{}),acc:clamp(acc||0,0,1),detail:detail||''})},
+  kill(){alive=false;timers.forEach(clearTimeout);timers.clear();runC()}};
+ return ctx}
+function exView(ex,level,onDone,calm){const prog=h('span',{class:'p'}),body=h('div');
+ const wrap=h('section',{},h('div',{class:'exhead'},h('span',{class:'dom',style:`--dc:${DOM[ex.dom].c}`},DOM[ex.dom].n),h('span',{class:'t'},ex.name),prog),body);
+ const ctx=makeCtx(body,level,onDone);ctx.calm=!!calm;ctx.progress=(i,n)=>{prog.textContent=`${i} / ${n}`};curCtx=ctx;return{wrap,ctx}}
+function baseLevel(id){return S.levels[id]||1}
+function lastPlayed(id){const a=S.hist[id];return a&&a.length?a[a.length-1].ts:0}
+function record(ex,lvl,res,offset){const base=baseLevel(ex.id);let nb=base,note;
+ if(offset<0){note=`Heute leichter gespielt – deine Stufe bleibt bei ${base}.`}
+ else if(res.acc>=.85&&base<10){nb=base+1;note=`Nächstes Mal Stufe ${nb}.`}
+ else if(res.acc<.6&&base>1){nb=base-1;note=`Nächstes Mal etwas leichter (Stufe ${nb}).`}
+ else note=`Bleibt auf Stufe ${base}.`;
+ S.levels[ex.id]=nb;S.levelsTs=S.levelsTs||{};if(nb!==base)S.levelsTs[ex.id]=Date.now();(S.hist[ex.id]=S.hist[ex.id]||[]).push({ts:Date.now(),d:dstr(),acc:+res.acc.toFixed(2),lvl,...(res.mpt!=null?{val:+res.mpt.toFixed(1)}:{})});S.hist[ex.id]=S.hist[ex.id].slice(-60);save();return note}
+
+/* ================= Session ================= */
+let run=null,ticker=null;
+function stopTicker(){if(ticker){clearInterval(ticker);ticker=null}}
+function startTicker(){stopTicker();const up=()=>{if(!run)return;const el=Date.now()-run.start;document.querySelectorAll('[data-el]').forEach(e=>e.textContent=`${mmss(el)} von ${run.planned}:00`);document.querySelectorAll('[data-bar]').forEach(e=>e.style.width=Math.min(100,el/(run.planned*600))+'%')};up();ticker=setInterval(up,1000)}
+const elapsedMin=()=>run?(Date.now()-run.start)/60000:0;
+function sessionBar(){let armed=false,tm;const end=h('button',{class:'btn sm'},'Beenden');
+ end.onclick=()=>{if(armed){clearTimeout(tm);finishSession(true);return}armed=true;end.textContent='Wirklich beenden?';end.classList.add('warn');tm=setTimeout(()=>{armed=false;end.textContent='Beenden';end.classList.remove('warn')},3000)};
+ const e0=run?Date.now()-run.start:0,calm=run&&run.calm;
+ const lab=calm?h('span',{class:'small muted'},'Ruhemodus'):h('span',{class:'small muted','data-el':''},run?`${mmss(e0)} von ${run.planned}:00`:'');
+ const el=h('div',{class:'sbar'},h('div',{class:'row between'},lab,end),h('div',{class:'bar'},h('i',{'data-bar':'',style:`width:${run?Math.min(100,e0/(run.planned*600)):0}%`})));setTimeout(startTicker,0);return el}
+function startSession(planned,offset,ci,calm){run={planned,offset,calm:!!calm,start:Date.now(),task:null,so:{id:Date.now(),date:dstr(),type:'train',planned,calm:!!calm,energy:ci?ci.energy:null,fog:ci?ci.fog:null,items:[],minutes:0}};S.sessions.push(run.so);save();
+ document.body.classList.toggle('calm',!!calm);
+ if(S.settings.tasks&&planned>=10){const L=baseLevel('auftrag'),n=Math.max(2,[2,2,3,3,3,4,4,4,5,5][L-1]-(calm?1:0)),pool=WORDS.filter(w=>w[2]===1).map(w=>w[0]);
+  const doms=Object.keys(DOM).filter(d=>S.settings.domains[d]);const ev=(L>=3&&planned>=15&&!calm&&doms.length>1)?{dom:pick(doms),hit:null,fa:0}:null;
+  run.task={L,words:sample(pool,n),ev,pool};return taskIntro()}
+ nextExercise()}
+function taskIntro(){const t=run.task;
+ screen(sessionBar(),h('div',{class:'card taskcard'},h('span',{class:'dom',style:`--dc:${DOM.mem.c}`},'Mitnehm-Auftrag'),h('h2',{style:'margin-top:10px'},'Für die ganze Einheit'),
+  h('p',{},`Merk dir diese ${t.words.length} Wörter. Am Ende wirst du danach gefragt.`),h('div',{class:'taskwords'},t.words.map(w=>h('span',{},w))),
+  t.ev&&h('p',{style:'margin-top:14px'},'Außerdem: Wenn eine Übung aus dem Bereich ',h('b',{style:`color:${DOM[t.ev.dom].c}`},DOM[t.ev.dom].n),' angekündigt wird, tippe dort auf 🔔, bevor du startest.')),
+  h('button',{class:'btn primary',onclick:nextExercise},'Gemerkt – los geht’s'))}
+function pickNext(exclude=[]){let doms=Object.keys(DOM).filter(d=>S.settings.domains[d]);if(!doms.length)doms=Object.keys(DOM);
+ const items=run.so.items.filter(x=>x.id!=='auftrag'),cnt=d=>items.filter(x=>EXM[x.id].dom===d).length,lastDom=items.length?EXM[items[items.length-1].id].dom:null;
+ let c=doms.filter(d=>d!==lastDom);if(!c.length)c=doms;
+ if(!items.length&&run.task&&run.task.ev&&c.length>1)c=c.filter(d=>d!==run.task.ev.dom);
+ const m=Math.min(...c.map(cnt));c=c.filter(d=>cnt(d)===m);const dom=pick(c);
+ const used=items.map(x=>x.id);let exs=EX.filter(e=>e.dom===dom&&!used.includes(e.id)&&!exclude.includes(e.id));
+ if(!exs.length)exs=EX.filter(e=>doms.includes(e.dom)&&!exclude.includes(e.id));if(!exs.length)exs=EX.slice();
+ exs.sort((a,b)=>lastPlayed(a.id)-lastPlayed(b.id));return pick(exs.slice(0,2))}
+function nextExercise(){if(run.so.items.length&&run.planned-elapsedMin()<1.5)return finishSession(false);intro(pickNext())}
+function playLevel(ex){return clamp(baseLevel(ex.id)+(run?run.offset:0),1,10)}
+function intro(ex,free=false){const L=free?(demo?(demoLvl[ex.id]||baseLevel(ex.id)):baseLevel(ex.id)):playLevel(ex);
+ if(free)document.body.classList.toggle('calm',!!S.settings.calm);
+ const ev=!free&&run.task&&run.task.ev&&run.task.ev.hit==null?run.task.ev:null;
+ const bell=ev?h('button',{class:'bell','aria-label':'Erinnerung'},'🔔'):null;
+ if(bell)bell.onclick=()=>{if(ev.hit!=null)return;if(ex.dom===ev.dom){ev.hit=true;bell.classList.add('done');toast('🔔 Richtig erinnert.')}else{ev.fa++;toast('🔔 Das ist nicht der Bereich aus dem Auftrag.')}};
+ const go=h('button',{class:'btn primary'},'Los');go.onclick=()=>{if(ev&&ex.dom===ev.dom&&ev.hit==null)ev.hit=false;play(ex,L,free)};
+ const lvlPick=free&&demo?h('div',{class:'card'},h('p',{class:'muted small',style:'margin:0 0 8px'},'Stufe frei wählen (ändert nichts an deiner echten Stufe):'),h('div',{class:'chips'},Array.from({length:10},(_,k)=>h('button',{class:'chip'+(k+1===L?' on':''),style:'min-width:46px',onclick:()=>{demoLvl[ex.id]=k+1;intro(ex,true)}},String(k+1))))):null;
+ screen(free?backbar(demo?'Ausprobieren':'Einzelne Übung',backList):sessionBar(),
+  h('div',{class:'card'},h('span',{class:'dom',style:`--dc:${DOM[ex.dom].c}`},DOM[ex.dom].n),h('h2',{style:'margin-top:10px'},ex.name),h('p',{},howText(ex,L)),
+   h('p',{class:'muted small',style:'margin:0'},`Stufe ${L} von 10`+(!free&&run.offset<0?' · heute eine Stufe leichter':'')+((free?S.settings.calm:run.calm)?' · Ruhemodus':''))),
+  h('div',{class:'stack'},h('div',{class:'row'},go,bell),
+   !free&&h('button',{class:'btn ghost',onclick:()=>intro(pickNext([ex.id]))},'Andere Übung')),lvlPick)}
+function fatigueReasons(ex,res,L){const r=[];if(res.slow)r.push('du bist innerhalb der Übung deutlich langsamer geworden');if(res.drop)r.push('zum Ende der Übung gab es mehr Fehler als am Anfang');
+ const hs=(S.hist[ex.id]||[]).slice(0,-1).filter(x=>Math.abs(x.lvl-L)<=1).slice(-6);
+ if(hs.length>=3){const b=avg(hs.map(x=>x.acc));if(res.acc<b-.2)r.push(`das Ergebnis liegt klar unter deinem üblichen Wert bei dieser Übung (${Math.round(b*100)} %)`)}return r}
+function play(ex,L,free){const t0=Date.now();const v=exView(ex,L,res=>{
+  if(res.skipped){if(free)backList();else{toast('Übersprungen');intro(pickNext([ex.id]))}return}
+  if(free&&demo){freeResult(ex,res,'Ausprobieren – nichts gespeichert, Stufe und Verlauf bleiben unverändert.');return}
+  if(free){const note=record(ex,L,res,0);logFree(ex,L,res,Date.now()-t0);freeResult(ex,res,note);return}
+  const note=record(ex,L,res,run.offset),reasons=fatigueReasons(ex,res,L),prev=run.so.items.filter(x=>x.id!=='auftrag').pop();
+  run.so.items.push({id:ex.id,lvl:L,acc:+res.acc.toFixed(2),warn:reasons.length});
+  const flagged=reasons.length>=2||(reasons.length===1&&!!prev&&prev.warn>0);
+  if(flagged&&run.so.fatigueAt==null)run.so.fatigueAt=+elapsedMin().toFixed(1);
+  run.so.minutes=+elapsedMin().toFixed(1);save();between(ex,res,note,reasons,flagged)},free?S.settings.calm:run.calm);
+ if(free){const back=h('button',{class:'btn sm',onclick:()=>{v.ctx.kill();backList()}},'Abbrechen');screen(h('div',{class:'row between',style:'margin-bottom:6px'},h('span',{class:'muted small'},demo?`Ausprobieren · Stufe ${L} · wird nicht gespeichert`:`Stufe ${L}`),back),v.wrap)}
+ else screen(sessionBar(),v.wrap);
+ ex.run(v.ctx)}
+function resultCard(res,note){return h('div',{class:'card center'},h('div',{class:'big-num'},Math.round(res.acc*100)+' %'),res.detail&&h('p',{class:'muted',style:'margin:6px 0 0'},res.detail),h('p',{class:'small',style:'margin:10px 0 0'},note))}
+function between(ex,res,note,reasons=[],flagged=false){const left=run.planned-elapsedMin(),over=left<1.5;
+ let actions;
+ if(flagged)actions=h('div',{class:'stack'},h('div',{class:'card warncard'},h('h3',{},'Zeichen von Ermüdung'),h('p',{},`Mir fällt auf: ${reasons.join(', und ')}.`),
+   h('p',{class:'small',style:'margin:0'},'Das ist oft ein frühes Zeichen, dass der Kopf genug hat – meist bevor man es selbst merkt. Vorschlag: hier aufhören.')),
+  h('button',{class:'btn primary',onclick:()=>finishSession(true)},'Für heute beenden'),h('button',{class:'btn ghost',onclick:nextExercise},'Trotzdem weiter'));
+ else if(over)actions=h('div',{class:'stack'},h('p',{class:'center'},'Deine geplante Zeit ist erreicht.'),h('button',{class:'btn primary',onclick:()=>finishSession(false)},'Abschließen'),
+    elapsedMin()<S.settings.maxMin-2&&h('button',{class:'btn ghost small',onclick:()=>intro(pickNext())},'Doch noch eine Übung'));
+ else actions=h('div',{class:'stack'},reasons.length?h('p',{class:'small muted center'},`Hinweis: ${reasons[0]}. Achte darauf, wie es dir geht.`):null,h('p',{class:'center muted'},'Wie geht’s deinem Kopf?'),h('button',{class:'btn primary',onclick:nextExercise},'Weiter'),
+    h('div',{class:'row'},h('button',{class:'btn',onclick:()=>breathe(nextExercise)},'30 s Pause'),h('button',{class:'btn',onclick:()=>finishSession(true)},'Reicht für heute')));
+ screen(sessionBar(),h('p',{class:'muted small',style:'margin:0'},ex.name),resultCard(res,note),actions)}
+let breathTok=0;
+function breathe(after){const tok=++breathTok;const c=h('div',{class:'breath'}),lab=h('p',{class:'center muted'},'');
+ screen(sessionBar(),h('h2',{class:'center',style:'margin-top:20px'},'Kurz durchatmen'),c,lab,h('button',{class:'btn ghost',onclick:()=>{breathTok++;after()}},'Überspringen'));
+ const end=Date.now()+30000;const cyc=()=>{if(tok!==breathTok)return;if(Date.now()>=end){breathTok++;after();return}
+  c.className='breath in';lab.textContent='Einatmen …';setTimeout(()=>{if(tok!==breathTok)return;c.className='breath out';lab.textContent='Ausatmen …';setTimeout(cyc,6000)},4000)};setTimeout(cyc,100)}
+function finishSession(early){if(curCtx)curCtx.kill();breathTok++;if(!run)return home();
+ if(!early&&run.task&&run.so.items.length)return taskRecall(()=>finalize(false));finalize(early)}
+function taskRecall(cb){const t=run.task,n=t.words.length,all=shuffle([...t.words,...sample(t.pool.filter(w=>!t.words.includes(w)),n*2)]),sel=new Set();let fin=false;
+ const info=h('p',{class:'center'},`Welche ${n} Wörter hattest du dir am Anfang gemerkt?`),wrap=h('div',{class:'wchips'});
+ const chips=all.map(w=>{const c=h('button',{class:'chip'},w);c.onclick=()=>{if(fin)return;sel.has(w)?sel.delete(w):sel.add(w);c.classList.toggle('on')};wrap.append(c);return[w,c]});
+ const btn=h('button',{class:'btn primary'},'Fertig');
+ btn.onclick=()=>{if(fin){cb();return}fin=true;let hit=0,fa=0;
+  chips.forEach(([w,c])=>{c.classList.remove('on');const on=t.words.includes(w);if(on&&sel.has(w)){hit++;c.classList.add('hit')}else if(on)c.classList.add('miss');else if(sel.has(w)){fa++;c.classList.add('fa')}});
+  const ws=clamp((hit-fa)/n,0,1);let acc=ws,txt=`${hit} von ${n} Wörtern`+(fa?` · ${fa} zu viel`:'');
+  if(t.ev&&t.ev.hit!=null){acc=ws*.6+clamp((t.ev.hit?1:0)-t.ev.fa*.25,0,1)*.4;txt+=t.ev.hit?' · 🔔 rechtzeitig getippt':' · 🔔 vergessen'}
+  else if(t.ev)txt+=' · Der Bereich aus dem Auftrag kam heute nicht dran';
+  const note=record(AUFTRAG,t.L,{acc},run.offset);run.so.items.push({id:'auftrag',lvl:t.L,acc:+acc.toFixed(2)});save();
+  info.textContent=`${txt}. ${note}`;btn.textContent='Weiter'};
+ screen(sessionBar(),h('h2',{style:'margin-top:6px'},'Mitnehm-Auftrag'),info,wrap,btn)}
+function finalize(early){if(curCtx)curCtx.kill();stopTicker();const so=run.so;so.minutes=+elapsedMin().toFixed(1);so.early=!!early;
+ if(!so.items.length){S.sessions=S.sessions.filter(s=>s!==so);save();run=null;return home()}save();run=null;
+ const reply=h('p',{class:'small',style:'margin:10px 0 0;min-height:1.4em'},'');
+ const opts=[['gleich','Wie vorher'],['muede','Etwas müder'],['erschoepft','Erschöpft']];
+ const chips=h('div',{class:'chips'},opts.map(([v,l])=>{const b=h('button',{class:'chip'},l);b.onclick=()=>{so.after=v;save();chips.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  reply.textContent=v==='erschoepft'?'Gespeichert. Fließt in deine persönliche Grenze und den nächsten Vorschlag ein.':'Gespeichert.'};return b}));
+ screen(h('h1',{style:'margin-top:10px'},early?'Für heute beendet':'Geschafft für heute'),
+  h('div',{class:'card'},h('p',{style:'margin:0 0 8px'},`${fmtMin(so.minutes)} · ${so.items.length} ${so.items.length===1?'Übung':'Übungen'}`+(so.fatigueAt!=null?` · Ermüdungszeichen nach ${Math.round(so.fatigueAt)} Min`:'')),
+   h('ul',{class:'list-clean'},so.items.map(x=>h('li',{},h('span',{},EXM[x.id].name),h('span',{class:'muted'},Math.round(x.acc*100)+' %'))))),
+  h('div',{class:'card'},h('h3',{},'Wie geht es dir jetzt?'),chips,reply),
+  h('button',{class:'btn primary',onclick:home},'Zur Startseite'))}
+
+/* ================= Freies Üben ================= */
+function logFree(ex,L,res,ms){const t=dstr();let so=S.sessions.find(s=>s.date===t&&s.type==='frei');if(!so){so={id:Date.now(),date:t,type:'frei',items:[],minutes:0};S.sessions.push(so)}
+ so.items.push({id:ex.id,lvl:L,acc:+res.acc.toFixed(2)});so.minutes=+(so.minutes+ms/60000).toFixed(1);save()}
+function freeResult(ex,res,note){screen(backbar(ex.name,backList),resultCard(res,note),h('div',{class:'row'},h('button',{class:'btn',onclick:()=>intro(ex,true)},'Nochmal'),h('button',{class:'btn primary',onclick:backList},'Übersicht')))}
+let demo=false;const demoLvl={};
+const backList=()=>demo?demoList():freeList();
+function demoList(){if(curCtx)curCtx.kill();demo=true;document.body.classList.toggle('calm',!!S.settings.calm);
+ screen(backbar('Ausprobieren',home),h('div',{class:'card',style:'border-style:dashed'},h('p',{style:'margin:0'},h('b',{},'Nichts wird gespeichert. '),'Zum Vorführen, Reinschnuppern oder einfach so. Stufe frei wählbar, deine echten Stufen, der Verlauf und die persönliche Grenze bleiben unberührt.')),
+  Object.entries(DOM).map(([d,o])=>h('div',{class:'card'},h('span',{class:'dom',style:`--dc:${o.c}`},o.n),h('div',{class:'stack',style:'margin-top:10px'},EX.filter(e=>e.dom===d).map(e=>h('button',{class:'btn',onclick:()=>intro(e,true)},h('span',{class:'exrow'},h('span',{class:'n'},e.name),h('span',{class:'muted small'},'Stufe '+(demoLvl[e.id]||baseLevel(e.id))))))))))}
+function lvlBar(n){return h('span',{class:'lvl',title:`Stufe ${n}`},Array.from({length:10},(_,k)=>h('i',{class:k<n?'f':''})))}
+function freeList(){if(curCtx)curCtx.kill();demo=false;document.body.classList.remove('calm');
+ screen(backbar('Einzelne Übung',home),h('p',{class:'muted small'},'Wird nicht als Trainingseinheit geplant, aber im Verlauf gespeichert.'),
+  Object.entries(DOM).map(([d,o])=>h('div',{class:'card'},h('span',{class:'dom',style:`--dc:${o.c}`},o.n),h('div',{class:'stack',style:'margin-top:10px'},
+   EX.filter(e=>e.dom===d).map(e=>h('button',{class:'btn',onclick:()=>intro(e,true)},h('span',{class:'exrow'},h('span',{class:'n'},e.name),lvlBar(baseLevel(e.id)))))))))}
+
+/* ================= Check-in & Plan ================= */
+function backbar(title,fn){return h('div',{class:'backbar'},h('button',{class:'icon',onclick:fn,'aria-label':'Zurück'},'←'),h('h2',{},title))}
+const lastTrain=()=>{for(let i=S.sessions.length-1;i>=0;i--)if(S.sessions[i].type==='train')return S.sessions[i];return null};
+const minutesToday=()=>S.sessions.filter(s=>s.date===dstr()&&s.type!=='pause').reduce((a,s)=>a+(s.minutes||0),0);
+function checkin(){const ans={},last=lastTrain(),askPem=last&&daysBetween(last.date,dstr())<=3&&last.pem==null;
+ const groups=[{k:'energy',q:'Wie viel Energie hast du heute?',o:[[1,'Kaum'],[2,'Wenig'],[3,'Okay'],[4,'Gut']]},{k:'fog',q:'Wie klar ist dein Kopf?',o:[[1,'Sehr neblig'],[2,'Etwas neblig'],[3,'Klar']]}];
+ if(askPem)groups.push({k:'pem',q:`Ging es dir nach dem letzten Training (${relDay(last.date)}) schlechter?`,o:[[2,'Ja, deutlich'],[1,'Etwas'],[0,'Nein']]});
+ groups.push({k:'busy',q:'Steht heute noch viel an?',o:[[1,'Ja, einiges'],[0,'Eher nicht']]});
+ const go=h('button',{class:'btn primary',disabled:true},'Weiter');
+ go.onclick=()=>{if(askPem)last.pem=ans.pem;const ci={date:dstr(),ts:Date.now(),...ans};S.checkins.push(ci);save();plan(ci,last)};
+ screen(backbar('Check-in',home),groups.map(g=>{const chips=h('div',{class:'chips'});g.o.forEach(([v,l])=>{const b=h('button',{class:'chip'},l);
+   b.onclick=()=>{ans[g.k]=v;chips.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');go.disabled=!groups.every(x=>ans[x.k]!=null)};chips.append(b)});
+  return h('div',{class:'card'},h('h3',{},g.q),chips)}),go)}
+function learnLimit(){const ss=S.sessions.filter(s=>s.type==='train'&&(s.pem!=null||s.after)).slice(-30);if(ss.length<6)return{n:ss.length,limit:null};
+ const bad=s=>(s.pem||0)>=1||s.after==='erschoepft';let best=null;
+ for(const T of [5,10,15,20,25]){const ab=ss.filter(s=>s.minutes>T+1),be=ss.filter(s=>s.minutes<=T+1);if(ab.length<3||be.length<2)continue;
+  const ra=ab.filter(bad).length/ab.length,rb=be.filter(bad).length/be.length;
+  if(ra>=.5&&ra-rb>=.3&&(!best||ra-rb>best.diff))best={limit:T,diff:ra-rb,ra,rb,na:ab.length,nba:ab.filter(bad).length,nb:be.length,nbb:be.filter(bad).length}}
+ return{n:ss.length,limit:null,...(best||{})}}
+function fatigueTrend(){const last=S.sessions.filter(s=>s.type==='train').slice(-5),fz=last.filter(s=>s.fatigueAt!=null);return fz.length>=3?{n:fz.length,of:last.length,med:median(fz.map(s=>s.fatigueAt))}:null}
+function recommend(ci,last){const why=[],EL={1:'kaum Energie',2:'wenig Energie',3:'Energie okay',4:'gute Energie'},FL={1:'Kopf sehr neblig',2:'Kopf etwas neblig',3:'Kopf klar'};
+ let m={1:0,2:10,3:15,4:20}[ci.energy];if(ci.fog===1)m-=5;if(ci.fog===3)m+=5;why.push(`${EL[ci.energy]}, ${FL[ci.fog]}.`);
+ if(ci.busy){m-=5;why.push('Heute steht noch einiges an – Energie dafür übrig lassen.')}
+ if(ci.pem===2){m=Math.min(m,5);why.push('Nach dem letzten Training ging es dir deutlich schlechter – heute höchstens 5 Minuten.')}
+ else if(ci.pem===1){m-=5;why.push('Nach dem letzten Mal etwas schlechter – 5 Minuten weniger.')}
+ if(last&&last.after==='erschoepft'&&daysBetween(last.date,dstr())<=2&&ci.pem!==2){m-=5;why.push('Letztes Mal warst du danach erschöpft.')}
+ const done=minutesToday();if(done>0){m-=done;why.push(`Heute schon ${fmtMin(done)} trainiert.`)}
+ m=clamp(Math.round(m/5)*5,0,S.settings.maxMin);
+ const lim=learnLimit();if(S.settings.useLearned&&lim.limit!=null&&m>lim.limit){m=lim.limit;why.push(`Deine Grenze: Nach Einheiten über ${lim.limit} Min ging es dir ${lim.nba} von ${lim.na} Mal schlechter, bei kürzeren seltener.`)}
+ const ft=fatigueTrend();if(S.settings.useLearned&&ft){const cap=Math.max(5,Math.ceil(ft.med/5)*5);if(m>cap){m=cap;why.push(`In ${ft.n} der letzten ${ft.of} Einheiten zeigten sich Ermüdungszeichen, meist nach etwa ${Math.round(ft.med)} Min.`)}}
+ return{m,offset:(ci.energy<=2||ci.fog===1)?-1:0,why,calm:ci.energy<=2||ci.fog===1}}
+function pauseDay(){S.sessions.push({id:Date.now(),date:dstr(),type:'pause',minutes:0});save();toast('Pause-Tag eingetragen');home()}
+function plan(ci,last){const r=recommend(ci,last);
+ if(r.m===0){screen(backbar('Heute',home),h('div',{class:'card'},h('h2',{},'Heute lieber Pause'),h('ul',{style:'padding-left:1.2em;margin:6px 0 10px'},r.why.map(w=>h('li',{},w))),
+   h('p',{class:'muted small',style:'margin:0'},'Ein Pause-Tag wird im Verlauf genauso eingetragen.')),
+  h('div',{class:'stack'},h('button',{class:'btn primary',onclick:pauseDay},'Pause-Tag eintragen'),h('button',{class:'btn ghost',onclick:()=>startSession(5,-2,ci,true)},'Trotzdem 5 Minuten, ganz leicht')));return}
+ let sel=r.m,calm=!!S.settings.calm||r.calm;const note=h('p',{class:'small muted',style:'min-height:1.4em;margin:8px 0 0'},'');const chips=h('div',{class:'chips'});
+ for(let v=5;v<=S.settings.maxMin;v+=5){const b=h('button',{class:'chip'+(v===sel?' on':'')},`${v} Min`,v===r.m?h('small',{},'empfohlen'):null);
+  b.onclick=()=>{sel=v;chips.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');note.textContent=v>r.m?'Mehr als empfohlen. Du kannst jederzeit beenden.':''};chips.append(b)}
+ const tg=h('input',{type:'checkbox',class:'sw'});tg.checked=calm;tg.onchange=()=>{calm=tg.checked};
+ screen(backbar('Dein Plan',home),h('div',{class:'card'},h('div',{class:'big-num'},`${r.m} Min`),h('ul',{style:'padding-left:1.2em;margin:10px 0 0'},r.why.map(w=>h('li',{},w)),r.offset<0&&h('li',{},'Übungen heute eine Stufe leichter.'))),
+  h('div',{class:'card'},h('h3',{},'Dauer'),chips,note),
+  h('div',{class:'card'},h('label',{class:'toggle',style:'padding:0'},h('span',{},h('b',{},'Ruhemodus'),h('div',{class:'small muted'},'Ohne Uhr und Zeitdruck, weniger Durchgänge, langsameres Tempo, gedämpfte Farben.')),tg)),
+  h('div',{class:'stack'},h('button',{class:'btn primary',onclick:()=>startSession(sel,r.offset,ci,calm)},'Starten'),h('button',{class:'btn ghost',onclick:pauseDay},'Lieber Pause-Tag')))}
+
+/* ================= Start, Verlauf, Einstellungen ================= */
+function dayState(ds){const ss=S.sessions.filter(s=>s.date===ds);if(ss.some(s=>s.type!=='pause'&&(s.minutes||0)>0))return'on';if(ss.some(s=>s.type==='pause'))return'pause';return''}
+function weekDots(){const W=['So','Mo','Di','Mi','Do','Fr','Sa'];return h('div',{class:'wk'},Array.from({length:7},(_,k)=>{const d=addDays(k-6);return h('div',{},h('div',{class:'wd'},W[d.getDay()]),h('div',{class:'dotd '+dayState(dstr(d))+(k===6?' today':'')}))}))}
+function home(){if(curCtx)curCtx.kill();stopTicker();breathTok++;run=null;demo=false;if(pendingRemote){const r=pendingRemote;pendingRemote=null;applyRemote(r);return}document.body.classList.remove('calm');
+ const t=dstr(),mt=minutesToday(),paused=S.sessions.some(s=>s.date===t&&s.type==='pause');
+ const status=mt>0?`Heute: ${fmtMin(mt)} trainiert.`:paused?'Heute ist Pause-Tag.':'Heute noch nicht trainiert.';
+ screen(h('header',{class:'top'},h('div',{},h('div',{class:'muted small'},new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})),h('h1',{},'Kopfzeit'),h('div',{id:'fbb',class:'small muted',style:'margin-top:-6px'},'')),h('button',{class:'icon',onclick:settings,'aria-label':'Einstellungen'},'⚙')),
+  h('div',{class:'card'},h('p',{class:'muted small',style:'margin:0 0 6px'},'Letzte 7 Tage'),weekDots(),h('p',{style:'margin:12px 0 0'},status)),
+  h('div',{class:'stack'},h('button',{class:'btn primary',style:'min-height:64px;font-size:1.1em',onclick:checkin},mt>0?'Noch eine Einheit':'Training starten'),
+   h('div',{class:'row'},h('button',{class:'btn',onclick:freeList},'Einzelne Übung'),h('button',{class:'btn',onclick:history},'Verlauf')),
+   h('button',{class:'btn ghost',onclick:demoList},'Ausprobieren – ohne Speichern')),
+  (setTimeout(()=>{app.dataset.screen='home';fbBadge()},0),null),
+  h('p',{class:'muted small center',style:'margin-top:26px'},'Erst ein kurzer Check-in, dann ein Plan passend zur Tagesform. Beenden geht jederzeit – alles Bisherige bleibt gespeichert.'))}
+function spark(vals){if(vals.length<2)return h('span',{class:'muted small'},vals.length?Math.round(vals[0]*100)+' %':'–');const w=90,hh=26;
+ const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(hh-3-v*(hh-6)).toFixed(1)}`).join(' ');
+ return h('span',{html:`<svg width="${w}" height="${hh}" viewBox="0 0 ${w} ${hh}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`})}
+function limitCard(){const lim=learnLimit(),ft=fatigueTrend();
+ const txt=lim.limit!=null?`Nach Einheiten über ${lim.limit} Min ging es dir ${lim.nba} von ${lim.na} Mal schlechter, bei kürzeren ${lim.nbb} von ${lim.nb} Mal. Die App plant deshalb höchstens ${lim.limit} Min.`+(S.settings.useLearned?'':' (in den Einstellungen ausgeschaltet)')
+  :lim.n<6?`Noch zu wenig Daten: ${lim.n} von 6 Einheiten mit Rückmeldung. Die kommt aus „Wie geht es dir jetzt?“ nach dem Training und der Frage beim nächsten Check-in.`
+  :'Bisher kein klares Muster zwischen Dauer und Verschlechterung.';
+ return h('div',{class:'card'},h('h3',{},'Deine Grenze'),h('p',{style:'margin:0'},txt),ft&&h('p',{class:'small muted',style:'margin:8px 0 0'},`Ermüdungszeichen in ${ft.n} der letzten ${ft.of} Einheiten, meist nach etwa ${Math.round(ft.med)} Min.`))}
+function history(){const W=['Mo','Di','Mi','Do','Fr','Sa','So'];const start=addDays(-27),pad=(start.getDay()+6)%7;
+ const cells=[...W.map(w=>h('div',{class:'wd center'},w)),...Array.from({length:pad},()=>h('div')),...Array.from({length:28},(_,k)=>{const d=addDays(k-27),ds=dstr(d);const ci=S.checkins.filter(c=>c.date===ds).pop();
+  return h('div',{class:'dotd '+dayState(ds)+(k===27?' today':''),title:`${d.toLocaleDateString('de-DE')}${ci?` · Energie ${ci.energy}/4`:''}`})})];
+ const weekMin=S.sessions.filter(s=>daysBetween(s.date,dstr())<7&&s.type!=='pause').reduce((a,s)=>a+(s.minutes||0),0);
+ const recent=S.sessions.filter(s=>s.type==='train').slice(-8).reverse();const AF={gleich:'wie vorher',muede:'etwas müder',erschoepft:'erschöpft'};
+ screen(backbar('Verlauf',home),
+  h('div',{class:'card'},h('p',{class:'muted small',style:'margin:0 0 8px'},'Letzte 4 Wochen'),h('div',{class:'month'},cells),
+   h('div',{class:'legend'},h('span',{},h('i',{style:'background:var(--accent);border-color:var(--accent)'}),'trainiert'),h('span',{},h('i',{style:'border-style:dashed;border-color:var(--muted)'}),'Pause-Tag')),
+   h('p',{style:'margin:12px 0 0'},`Letzte 7 Tage: ${fmtMin(weekMin)}`)),
+  limitCard(),
+  Object.entries(DOM).map(([d,o])=>h('div',{class:'card'},h('span',{class:'dom',style:`--dc:${o.c}`},o.n),h('ul',{class:'list-clean',style:'margin-top:8px'},
+   [...EX.filter(e=>e.dom===d),...(d==='mem'?[AUFTRAG]:[])].map(e=>{const hs=(S.hist[e.id]||[]).slice(-10),sec=e.id==='tonhalte'&&hs.length&&hs[hs.length-1].val!=null;return h('li',{style:'align-items:center'},h('span',{style:'flex:1'},e.name,sec?h('span',{class:'muted small'},` · zuletzt ${fmtS(hs[hs.length-1].val)} s, bester ${fmtS(Math.max(...hs.filter(x=>x.val!=null).map(x=>x.val)))} s`):null),sec?spark(hs.filter(x=>x.val!=null).map(x=>Math.min(1,x.val/30))):spark(hs.map(x=>x.acc)),lvlBar(baseLevel(e.id)))})))),
+  recent.length?h('div',{class:'card'},h('h3',{},'Letzte Einheiten'),h('ul',{class:'list-clean'},recent.map(s=>h('li',{},h('span',{},`${relDay(s.date)} · ${fmtMin(s.minutes||0)}`),h('span',{class:'muted small'},[s.energy?`Energie ${s.energy}/4`:'',s.after?`danach ${AF[s.after]}`:'',s.pem===2?'Verschlechterung':s.pem===1?'etwas schlechter':'',s.fatigueAt!=null?`Ermüdung ab ${Math.round(s.fatigueAt)} Min`:''].filter(Boolean).join(' · ')))))):null)}
+function saveSet(){S.settingsTs=Date.now();save()}
+function settings(){const st=S.settings;
+ const sw=h('div',{class:'row',style:'flex-wrap:wrap'},ACCENTS.map(c=>{const b=h('button',{class:'swatch'+(st.accent===c?' on':''),style:`background:${c}`,'aria-label':c});b.onclick=()=>{st.accent=c;saveSet();applySettings();settings()};return b}));
+ const tg=(label,checked,fn)=>{const i=h('input',{type:'checkbox',class:'sw'});i.checked=checked;i.onchange=()=>fn(i);return h('label',{class:'toggle'},h('span',{},label),i)};
+ let armed=false;const reset=h('button',{class:'btn ghost warn'},'Alle Daten löschen');reset.onclick=()=>{if(!armed){armed=true;reset.textContent='Sicher? Nochmal tippen';setTimeout(()=>{armed=false;reset.textContent='Alle Daten löschen'},3000);return}S=DEF();save();applySettings();toast('Gelöscht');home()};
+ const file=h('input',{type:'file',accept:'application/json,.json',style:'display:none'});
+ file.onchange=()=>{const f=file.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.sessions))throw 0;localStorage.setItem(KEY,JSON.stringify(d));S=load();saveSet();applySettings();toast('Importiert');settings()}catch(e){toast('Datei nicht lesbar')}};r.readAsText(f)};
+ const maxC=h('div',{class:'chips'},[15,20,25,30].map(v=>{const b=h('button',{class:'chip'+(st.maxMin===v?' on':'')},`${v} Min`);b.onclick=()=>{st.maxMin=v;saveSet();settings()};return b}));
+ screen(backbar('Einstellungen',home),
+  h('div',{class:'card'},h('h3',{},'Farbe'),sw,h('div',{style:'height:8px'}),tg('Größere Schrift',!!st.big,i=>{st.big=i.checked;saveSet();applySettings()})),
+  h('div',{class:'card'},h('h3',{},'Training'),
+   tg('Ruhemodus als Standard',!!st.calm,i=>{st.calm=i.checked;saveSet()}),
+   tg('Mitnehm-Aufträge (ab 10 Min)',!!st.tasks,i=>{st.tasks=i.checked;saveSet()}),
+   tg('Gelernte Grenze verwenden',!!st.useLearned,i=>{st.useLearned=i.checked;saveSet()})),
+  h('div',{class:'card'},h('h3',{},'Texte für Textverständnis'),h('div',{class:'chips'},[['wiki','Wikipedia: Natur, Orte, Alltag'],['wikirand','Wikipedia: Zufall'],['news','Nachrichten (tagesschau Wissen)'],['local','Nur eingebaute Texte']].map(([v,l])=>{const b=h('button',{class:'chip'+((st.textSrc||'wiki')===v?' on':'')},l);b.onclick=()=>{st.textSrc=v;saveSet();settings()};return b})),
+   h('p',{class:'muted small',style:'margin:8px 0 0'},'Ohne Internet nimmt die App eingebaute oder zuletzt geladene Texte. Wikipedia-Zufall kann sehr speziell werden (Dörfer, Sportler …).')),
+  h('div',{class:'card'},h('h3',{},'Sprechen'),h('p',{class:'muted small',style:'margin:0'},(SRC?'Spracherkennung ist in diesem Browser verfügbar. Sie läuft über den Dienst des Browsers (Safari: Apple, Chrome: Google) – das Gesprochene wird dafür übertragen. ':'Dieser Browser hat keine Spracherkennung – beim Vorlesen schätzt du selbst ein. ')+'„Ton halten“ misst nur die Lautstärke direkt auf dem Gerät, dabei wird nichts übertragen. Den Bereich kannst du unten ausschalten, z. B. wenn du nicht laut üben kannst.')),
+  h('div',{class:'card'},h('h3',{},'Bereiche im Training'),Object.entries(DOM).map(([d,o])=>tg(o.n,!!st.domains[d],i=>{st.domains[d]=i.checked;if(!Object.values(st.domains).some(Boolean)){st.domains[d]=true;i.checked=true;toast('Mindestens ein Bereich bleibt an')}saveSet()}))),
+  h('div',{class:'card'},h('h3',{},'Obergrenze pro Tag'),maxC,h('p',{class:'muted small',style:'margin:8px 0 0'},'Mehr lässt die App nicht planen.')),
+  syncCard(),
+  h('div',{class:'card'},h('h3',{},'Daten'),h('p',{class:'muted small'},fbUser?'Wird über Firebase synchronisiert. Export ist zusätzlich als Backup möglich. „Alle Daten löschen“ löscht nur auf diesem Gerät – andere Geräte bringen ihre Daten beim nächsten Abgleich wieder mit.':'Ohne Synchronisierung bleibt alles nur auf diesem Gerät, in diesem Browser. Für Backup oder Gerätewechsel exportieren.'),
+   h('div',{class:'stack'},h('div',{class:'row'},h('button',{class:'btn',onclick:()=>{const a=h('a',{href:URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})),download:`kopfzeit-${dstr()}.json`});document.body.append(a);a.click();a.remove()}},'Exportieren'),h('button',{class:'btn',onclick:()=>file.click()},'Importieren')),reset,file)),
+  h('div',{class:'card'},h('h3',{},'Über Kopfzeit'),h('p',{class:'small muted',style:'margin:0'},'Übungsformen angelehnt an gängiges kognitives Training: Aufmerksamkeit, Merkspanne, Wortfindung, Verarbeitungstempo, Handlungsplanung. Die Schwierigkeit passt sich automatisch an (Stufe 1–10). Die App achtet auf Ermüdungszeichen (langsamer werden, mehr Fehler zum Ende, Ergebnis unter deinem Schnitt) und lernt aus deinen Rückmeldungen eine persönliche Zeitgrenze. Kein Ersatz für Therapie.')))}
+
+/* ================= Start ================= */
+applySettings();home();fbInit();
+window.KZ={EX,EXM,makeCtx,get S(){return S}};
+</script>
+</body>
+</html>
